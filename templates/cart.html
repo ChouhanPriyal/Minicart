@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart — MyStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy:       #0d1f3c;
+            --navy-mid:   #162d54;
+            --navy-light: #1e3f73;
+            --cream:      #f5f0e8;
+            --cream-dark: #ede6d6;
+            --gold:       #c9a84c;
+            --gold-light: #e4c97e;
+            --text-mid:   #4a5568;
+            --white:      #ffffff;
+            --shadow:     0 4px 24px rgba(13,31,60,0.10);
+        }
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--navy);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        nav {
+            background: var(--navy);
+            padding: 0 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(13,31,60,0.35);
+        }
+        .nav-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--cream);
+            letter-spacing: 0.04em;
+            text-decoration: none;
+        }
+        .nav-brand span { color: var(--gold); }
+        .nav-back {
+            font-size: 0.83rem;
+            color: rgba(245,240,232,0.65);
+            text-decoration: none;
+            transition: color .2s;
+        }
+        .nav-back:hover { color: var(--gold-light); }
+
+        /* ── PAGE ── */
+        .page {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 0 2rem 10rem;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            padding: 3rem 0 1.5rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--cream-dark);
+            margin-bottom: 1.8rem;
+        }
+        .page-header .eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+        }
+        .page-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        .item-count {
+            font-size: 0.82rem;
+            color: var(--text-mid);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ── CART ITEM ── */
+        .cart-item {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            padding: 1.1rem 1.4rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .cart-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(13,31,60,0.13);
+        }
+
+        /* thumbnail */
+        .item-thumb {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1.5px solid var(--cream-dark);
+        }
+
+        /* info */
+        .item-info { flex: 1; min-width: 0; }
+        .item-info h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-desc {
+            font-size: 0.78rem;
+            color: var(--text-mid);
+            margin-bottom: 0.35rem;
+            line-height: 1.45;
+        }
+        .item-price-line {
+            font-size: 0.82rem;
+            color: var(--text-mid);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .item-price-line .subtotal {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        .item-price-line .sep { opacity: .4; }
+
+        /* qty controls */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            background: var(--cream);
+            border-radius: 10px;
+            padding: 0.28rem 0.45rem;
+            flex-shrink: 0;
+        }
+        .qty-btn {
+            width: 28px; height: 28px;
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            line-height: 1;
+            transition: background .18s;
+        }
+        .qty-btn.minus {
+            background: rgba(13,31,60,0.08);
+            color: var(--navy);
+        }
+        .qty-btn.minus:hover { background: rgba(13,31,60,0.16); }
+        .qty-btn.plus {
+            background: var(--navy);
+            color: var(--cream);
+        }
+        .qty-btn.plus:hover { background: var(--navy-light); }
+        .qty-num {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--navy);
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* remove */
+        .btn-remove {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: #fee2e2;
+            color: #b91c1c;
+            text-decoration: none;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            transition: background .18s;
+        }
+        .btn-remove:hover { background: #fecaca; }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .empty-icon { font-size: 3rem; opacity: .3; margin-bottom: 1.2rem; }
+        .empty h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            color: var(--navy);
+            margin-bottom: 0.5rem;
+        }
+        .empty p { font-size: 0.88rem; color: var(--text-mid); margin-bottom: 1.8rem; }
+        .btn-shop {
+            display: inline-block;
+            background: var(--navy);
+            color: var(--cream);
+            padding: 0.7rem 2rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background .2s, transform .15s;
+        }
+        .btn-shop:hover { background: var(--navy-light); transform: translateY(-2px); }
+
+        /* ── STICKY CHECKOUT BAR ── */
+        .checkout-bar-strip {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            z-index: 51;
+        }
+        .checkout-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--white);
+            border-top: 1px solid var(--cream-dark);
+            padding: 1rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -4px 24px rgba(13,31,60,0.10);
+            z-index: 50;
+        }
+        .total-label {
+            font-size: 0.73rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-mid);
+            margin-bottom: 0.18rem;
+        }
+        .total-amount {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--navy);
+            line-height: 1;
+        }
+        .btn-checkout {
+            background: var(--navy);
+            color: var(--cream);
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            transition: background .2s, transform .15s;
+        }
+        .btn-checkout:hover { background: var(--navy-light); transform: translateY(-1px); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--navy);
+            color: rgba(245,240,232,0.5);
+            text-align: center;
+            padding: 1.8rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+        }
+        footer span { color: var(--gold); }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <a href="/" class="nav-brand">Mini<span>Cart</span></a>
+        <a href="/" class="nav-back">← Continue Shopping</a>
+    </nav>
+
+    <div class="page">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Shopping Bag</p>
+                <h1>🛒 Your Cart</h1>
+            </div>
+            <span class="item-count">{{ cart_items|length }} item{{ 's' if cart_items|length != 1 else '' }}</span>
+        </div>
+
+        <!-- EMPTY STATE -->
+        {% if cart_items|length == 0 %}
+        <div class="empty">
+            <div class="empty-icon">🛒</div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything yet.</p>
+            <a href="/" class="btn-shop">Browse Products</a>
+        </div>
+
+        {% else %}
+
+        <!-- CART ITEMS -->
+        {% for item in cart_items %}
+        <div class="cart-item">
+
+            <img class="item-thumb"
+                 src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                 alt="{{ item.name }}">
+
+            <div class="item-info">
+                <h3>{{ item.name }}</h3>
+                <p class="item-desc">{{ item.description[:60] }}…</p>
+                <div class="item-price-line">
+                    <span>₹{{ item.price }}</span>
+                    <span class="sep">×</span>
+                    <span>{{ item.quantity }}</span>
+                    <span class="sep">=</span>
+                    <span class="subtotal">₹{{ item.price * item.quantity }}</span>
+                </div>
+            </div>
+
+            <div class="qty-controls">
+                <a href="/decrease/{{ item.id }}" class="qty-btn minus">−</a>
+                <span class="qty-num">{{ item.quantity }}</span>
+                <a href="/increase/{{ item.id }}" class="qty-btn plus">+</a>
+            </div>
+
+            <a href="/remove/{{ item.id }}" class="btn-remove" title="Remove">✕</a>
+
+        </div>
+        {% endfor %}
+
+        <!-- STICKY CHECKOUT BAR -->
+        <div class="checkout-bar-strip"></div>
+        <div class="checkout-bar">
+            <div>
+                <div class="total-label">Order Total</div>
+                <div class="total-amount">₹{{ total_price }}</div>
+            </div>
+            <a href="/checkout" class="btn-checkout">Proceed to Payment →</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

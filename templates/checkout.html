@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>MiniCart — Checkout</title>
+    <style>
+        :root {
+            --navy: #1a2235;
+            --navy-light: #243048;
+            --gold: #c9a84c;
+            --gold-light: #e8c97a;
+            --cream: #f5f0e8;
+            --cream-dark: #ede6d8;
+            --text-dark: #1a2235;
+            --text-muted: #6b7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background-color: var(--navy);
+            padding: 0 2.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .logo span { color: var(--gold); }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 1px;
+            background: var(--gold);
+            transition: width 0.25s;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active { color: var(--gold); font-weight: 500; }
+        .nav-links a.active::after { width: 100%; }
+
+        .cart-badge {
+            background: var(--gold);
+            color: var(--navy);
+            border-radius: 6px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
+        .nav-icon { color: rgba(255,255,255,0.75); cursor: pointer; transition: color 0.2s; display: flex; align-items: center; }
+        .nav-icon:hover { color: #fff; }
+        .avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--gold);
+            color: var(--navy);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb {
+            padding: 1rem 2.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--navy); }
+        .breadcrumb span { color: var(--navy); font-weight: 500; }
+
+        /* ── CHECKOUT STEPPER ── */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 2.5rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+        .step-circle {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .step-circle.done { background: var(--navy); color: #fff; }
+        .step-circle.active { background: var(--gold); color: var(--navy); }
+        .step-circle.pending { background: var(--cream-dark); color: var(--text-muted); }
+
+        .step-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+        }
+        .step-label.active { color: var(--navy); font-weight: 600; }
+        .step-label.pending { color: var(--text-muted); }
+
+        .step-line {
+            width: 60px;
+            height: 1px;
+            background: var(--cream-dark);
+            margin: 0 0.75rem;
+        }
+        .step-line.done { background: var(--navy); }
+
+        /* ── PAGE LAYOUT ── */
+        .page-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 4rem;
+        }
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.25rem;
+        }
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        /* ── TWO-COL LAYOUT ── */
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 2rem;
+            box-shadow: 0 2px 24px rgba(26,34,53,0.07);
+            border: 1px solid rgba(26,34,53,0.06);
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--cream-dark);
+        }
+
+        /* ── ADDRESS RADIO ── */
+        .address-option {
+            position: relative;
+            margin-bottom: 0.875rem;
+        }
+        .address-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0; height: 0;
+        }
+        .address-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.875rem;
+            padding: 1rem 1.125rem;
+            border: 1.5px solid var(--cream-dark);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: var(--cream);
+        }
+        .address-option input[type="radio"]:checked + .address-label {
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(26,34,53,0.06);
+        }
+        .radio-dot {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--cream-dark);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: border-color 0.2s;
+        }
+        .address-option input[type="radio"]:checked + .address-label .radio-dot {
+            border-color: var(--navy);
+        }
+        .radio-inner {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--navy);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .address-option input[type="radio"]:checked + .address-label .radio-inner {
+            opacity: 1;
+        }
+        .address-text {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-dark);
+        }
+        .address-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        /* ── SINGLE ADDRESS ── */
+        .single-address {
+            padding: 1rem 1.125rem;
+            border: 1.5px solid var(--navy);
+            border-radius: 10px;
+            background: #fff;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .single-address-icon {
+            color: var(--gold);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ── DELIVERY META ── */
+        .delivery-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        .meta-chip {
+            background: var(--cream);
+            border: 1px solid var(--cream-dark);
+            border-radius: 8px;
+            padding: 0.625rem 0.875rem;
+        }
+        .meta-chip-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .meta-chip-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--navy);
+        }
+
+        /* ── ORDER SUMMARY ── */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            padding: 0.5rem 0;
+        }
+        .summary-row.total {
+            border-top: 1.5px solid var(--cream-dark);
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .summary-label { color: var(--text-muted); }
+        .summary-value { color: var(--navy); font-weight: 500; }
+        .summary-value.total { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; }
+
+        .free-badge {
+            background: #e8f5ee;
+            color: #2d7a4f;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── SECURE NOTE ── */
+        .secure-note {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.875rem;
+            justify-content: center;
+        }
+
+        /* ── BUTTON ── */
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.25rem;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--navy-light);
+            box-shadow: 0 6px 20px rgba(26,34,53,0.2);
+            transform: translateY(-1px);
+        }
+
+        .divider { height: 1px; background: var(--cream-dark); margin: 1rem 0; }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <div class="logo">Mini<span>Cart</span></div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/cart">
+            <span class="cart-badge">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                Cart &nbsp;1
+            </span>
+        </a>
+        <a href="/orders">Orders</a>
+        <a href="/profile">Profile</a>
+    </div>
+    <div class="nav-icons">
+        <span class="nav-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        </span>
+        <span class="nav-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </span>
+        <div class="avatar">S</div>
+    </div>
+</nav>
+
+<!-- ── BREADCRUMB ── -->
+<div class="breadcrumb">
+    <a href="/">Home</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <a href="/cart">Cart</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>Checkout</span>
+</div>
+
+<!-- ── PAGE ── -->
+<div class="page-wrapper">
+
+    <h1 class="page-title">Checkout</h1>
+    <p class="page-subtitle">Review your delivery details before placing the order</p>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+        <div class="step">
+            <div class="step-circle done">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="step-label" style="color:var(--text-muted);">Cart</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+            <div class="step-circle active">2</div>
+            <span class="step-label active">Delivery</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-circle pending">3</div>
+            <span class="step-label pending">Payment</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-circle pending">4</div>
+            <span class="step-label pending">Confirm</span>
+        </div>
+    </div>
+
+    <form method="POST" action="/place-order">
+    <div class="checkout-grid">
+
+        <!-- LEFT: Delivery Details -->
+        <div class="card">
+            <div class="section-label">Delivery Address</div>
+
+            <!-- TWO ADDRESSES -->
+            {% if user['address1'] and user['address2'] %}
+
+            <div class="address-option">
+                <input type="radio" id="addr1" name="address" value="{{ user['address1'] }}" checked>
+                <label class="address-label" for="addr1">
+                    <div class="radio-dot"><div class="radio-inner"></div></div>
+                    <div>
+                        <div class="address-tag">Primary Address</div>
+                        <div class="address-text">{{ user['address1'] }}</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="address-option">
+                <input type="radio" id="addr2" name="address" value="{{ user['address2'] }}">
+                <label class="address-label" for="addr2">
+                    <div class="radio-dot"><div class="radio-inner"></div></div>
+                    <div>
+                        <div class="address-tag">Secondary Address</div>
+                        <div class="address-text">{{ user['address2'] }}</div>
+                    </div>
+                </label>
+            </div>
+
+            {% else %}
+
+            <!-- SINGLE ADDRESS -->
+            <div class="single-address">
+                <div class="single-address-icon">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div>
+                    <div class="address-tag">Delivery Address</div>
+                    <div class="address-text">
+                        {{ user['address1'] if user['address1'] else user['address2'] }}
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="address"
+                value="{{ user['address1'] if user['address1'] else user['address2'] }}">
+
+            {% endif %}
+
+            <!-- CITY + PINCODE -->
+            <div class="delivery-meta">
+                <div class="meta-chip">
+                    <div class="meta-chip-label">City</div>
+                    <div class="meta-chip-value">{{ user['city'] }}</div>
+                </div>
+                <div class="meta-chip">
+                    <div class="meta-chip-label">Pincode</div>
+                    <div class="meta-chip-value">{{ user['pincode'] }}</div>
+                </div>
+            </div>
+
+            <input type="hidden" name="city" value="{{ user['city'] }}">
+            <input type="hidden" name="pincode" value="{{ user['pincode'] }}">
+
+            <!-- Edit Address Link -->
+            <div style="margin-top:1.25rem;">
+                <a href="/profile" style="font-size:0.8rem;color:var(--gold);text-decoration:none;font-weight:500;display:inline-flex;align-items:center;gap:0.35rem;">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit address in Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- RIGHT: Order Summary -->
+        <div>
+            <div class="card">
+                <div class="section-label">Order Summary</div>
+
+                <!-- Item rows — fill from your context/template vars -->
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal</span>
+                    <span class="summary-value">₹2,799.0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Delivery</span>
+                    <span class="free-badge">FREE</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Tax (incl.)</span>
+                    <span class="summary-value">—</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span class="summary-value total">₹2,799.0</span>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Place Order
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+
+                <div class="secure-note">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Secure checkout · 100% safe & encrypted
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </form>
+</div>
+
+</body>
+</html>

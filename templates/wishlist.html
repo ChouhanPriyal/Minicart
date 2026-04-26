@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist — MyStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy:       #0d1f3c;
+            --navy-mid:   #162d54;
+            --navy-light: #1e3f73;
+            --cream:      #f5f0e8;
+            --cream-dark: #ede6d6;
+            --gold:       #c9a84c;
+            --gold-light: #e4c97e;
+            --text-mid:   #4a5568;
+            --white:      #ffffff;
+            --shadow:     0 4px 24px rgba(13,31,60,0.10);
+            --radius:     14px;
+        }
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--navy);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        nav {
+            background: var(--navy);
+            padding: 0 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(13,31,60,0.35);
+        }
+        .nav-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--cream);
+            letter-spacing: 0.04em;
+            text-decoration: none;
+        }
+        .nav-brand span { color: var(--gold); }
+        .nav-back {
+            font-size: 0.83rem;
+            color: rgba(245,240,232,0.65);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color .2s;
+        }
+        .nav-back:hover { color: var(--gold-light); }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            padding: 3rem 2.5rem 1.5rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--cream-dark);
+            margin-bottom: 2rem;
+        }
+        .page-header-left {}
+        .page-header .eyebrow {
+            font-size: 0.75rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+        }
+        .page-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--navy);
+            line-height: 1.1;
+        }
+        .item-count {
+            font-size: 0.82rem;
+            color: var(--text-mid);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* ── GRID ── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.6rem;
+            padding: 0 2.5rem 4rem;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            transition: transform .22s, box-shadow .22s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 36px rgba(13,31,60,0.15);
+        }
+
+        .card-img {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-img img {
+            width: 100%; height: 210px;
+            object-fit: cover;
+            display: block;
+            transition: transform .4s;
+        }
+        .card:hover .card-img img { transform: scale(1.04); }
+
+        /* heart badge */
+        .heart-badge {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 34px; height: 34px;
+            background: rgba(13,31,60,0.65);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-body {
+            padding: 1.1rem 1.2rem 0.5rem;
+            flex: 1;
+        }
+        .card-body h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.18rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+        .card-body .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--navy-light);
+        }
+        .card-body .price small {
+            font-size: 0.8rem;
+            font-weight: 400;
+            opacity: .55;
+        }
+
+        .card-actions {
+            padding: 0.8rem 1.2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-cart {
+            display: block;
+            text-align: center;
+            background: var(--navy);
+            color: var(--cream);
+            padding: 0.62rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            transition: background .2s;
+        }
+        .btn-cart:hover { background: var(--navy-light); }
+
+        .btn-remove {
+            display: block;
+            text-align: center;
+            background: transparent;
+            color: #b91c1c;
+            border: 1.5px solid #fecaca;
+            padding: 0.58rem 1rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 400;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+        .btn-remove:hover { background: #fee2e2; border-color: #fca5a5; }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+        .empty-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.2rem;
+            opacity: 0.35;
+        }
+        .empty h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            color: var(--navy);
+            margin-bottom: 0.5rem;
+        }
+        .empty p {
+            font-size: 0.88rem;
+            color: var(--text-mid);
+            margin-bottom: 1.8rem;
+        }
+        .btn-shop {
+            display: inline-block;
+            background: var(--navy);
+            color: var(--cream);
+            padding: 0.7rem 2rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background .2s, transform .15s;
+        }
+        .btn-shop:hover { background: var(--navy-light); transform: translateY(-2px); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--navy);
+            color: rgba(245,240,232,0.5);
+            text-align: center;
+            padding: 1.8rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+        }
+        footer span { color: var(--gold); }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <a href="/" class="nav-brand">Mini<span>Cart</span></a>
+        <a href="/" class="nav-back">← Back to Store</a>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <p class="eyebrow">Your Collection</p>
+            <h1>❤ My Wishlist</h1>
+        </div>
+        <span class="item-count">{{ items|length }} item{{ 's' if items|length != 1 else '' }}</span>
+    </div>
+
+    <!-- WISHLIST ITEMS -->
+    {% if items|length > 0 %}
+    <div class="grid">
+        {% for item in items %}
+        <div class="card">
+
+            <div class="card-img">
+                <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                     alt="{{ item.name }}">
+                <div class="heart-badge">❤️</div>
+            </div>
+
+            <div class="card-body">
+                <h3>{{ item.name }}</h3>
+                <p class="price">₹{{ item.price }} <small>incl. tax</small></p>
+            </div>
+
+            <div class="card-actions">
+                <a href="/add-to-cart/{{ item.id }}" class="btn-cart">Add to Cart</a>
+                <a href="/remove-from-wishlist/{{ item.id }}"
+                   class="btn-remove"
+                   onclick="return confirm('Remove from wishlist?')">Remove</a>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty">
+        <div class="empty-icon">❤</div>
+        <h2>Your wishlist is empty</h2>
+        <p>Save items you love and find them here anytime.</p>
+        <a href="/" class="btn-shop">Browse Products</a>
+    </div>
+    {% endif %}
+
+    
+</body>
+</html>

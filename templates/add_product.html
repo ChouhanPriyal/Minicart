@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>MiniCart — Add Product</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --navy: #1a2235;
+            --navy-light: #243048;
+            --gold: #c9a84c;
+            --cream: #f5f0e8;
+            --cream-dark: #ede6d8;
+            --text-dark: #1a2235;
+            --text-muted: #6b7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--navy);
+            padding: 0 2.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .logo span { color: var(--gold); }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 1px;
+            background: var(--gold);
+            transition: width 0.25s;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active { color: var(--gold); font-weight: 500; }
+        .nav-links a.active::after { width: 100%; }
+
+        .nav-logout {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.2s;
+        }
+        .nav-logout:hover { color: #fca5a5; }
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb {
+            padding: 1rem 2.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--navy); }
+        .breadcrumb span { color: var(--navy); font-weight: 500; }
+
+        /* ── PAGE ── */
+        .page-wrapper {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 4rem;
+        }
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.2rem;
+        }
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 24px rgba(26,34,53,0.07);
+            border: 1px solid rgba(26,34,53,0.06);
+        }
+
+        /* ── SECTION LABEL ── */
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid var(--cream-dark);
+        }
+
+        /* ── FORM ── */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-bottom: 1.1rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--navy);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid var(--cream-dark);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-dark);
+            background: var(--cream);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        input::placeholder, textarea::placeholder { color: #b5afa6; }
+        input:focus, textarea:focus {
+            border-color: var(--navy);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(26,34,53,0.07);
+        }
+        textarea { resize: vertical; min-height: 110px; }
+
+        .divider { height: 1px; background: var(--cream-dark); margin: 1.5rem 0; }
+
+        /* ── FILE UPLOAD ── */
+        .upload-zone {
+            border: 2px dashed var(--cream-dark);
+            border-radius: 10px;
+            background: var(--cream);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+        .upload-zone:hover {
+            border-color: var(--navy);
+            background: #fff;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .upload-icon { color: var(--gold); margin: 0 auto 0.75rem; display: block; }
+        .upload-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 0.25rem;
+        }
+        .upload-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Preview */
+        #preview-wrap { display: none; margin-top: 1rem; }
+        #preview-wrap img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            border-radius: 8px;
+            border: 1px solid var(--cream-dark);
+            background: var(--cream);
+        }
+        #file-name {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* ── BUTTON ── */
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            width: 100%;
+            border-radius: 9px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.75rem;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--navy-light);
+            box-shadow: 0 6px 20px rgba(26,34,53,0.22);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <div class="logo">Mini<span>Cart</span></div>
+    <div class="nav-links">
+         <!-- 🏠 HOME -->
+        <a href="/" title="Home">
+            <i data-lucide="home"></i>
+        </a>
+        <!-- ➕ ADD PRODUCT (MIDDLE) -->
+        <a href="/add-product" title="Add Product">
+            <i data-lucide="plus-circle"></i>
+        </a>
+
+
+       <!-- 📦 ORDERS -->
+        <a href="/orders" title="Orders">
+            <i data-lucide="package"></i>
+        </a>
+    </div>
+</nav>
+
+<!-- ── BREADCRUMB ── -->
+<div class="breadcrumb">
+    <a href="/">Dashboard</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>Add Product</span>
+</div>
+
+<!-- ── PAGE ── -->
+<div class="page-wrapper">
+    <h1 class="page-title">Add Product</h1>
+    <p class="page-subtitle">List a new product in the MiniCart storefront</p>
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data">
+
+            <!-- Product Info -->
+            <div class="section-label">Product Information</div>
+
+            <div class="form-group">
+                <label for="name">Product Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g. Wireless Headphones">
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price (₹)</label>
+                <input type="text" id="price" name="price" placeholder="e.g. 1499">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description"
+                          placeholder="Describe the product — features, material, dimensions…"></textarea>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Image Upload -->
+            <div class="section-label">Product Image</div>
+
+            <div class="upload-zone" id="upload-zone">
+                <input type="file" name="image" id="image-input"
+                       accept="image/*" onchange="previewImage(this)">
+                <svg class="upload-icon" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div class="upload-title">Click to upload image</div>
+                <div class="upload-hint">PNG, JPG, WEBP — max 5 MB</div>
+            </div>
+
+            <div id="preview-wrap">
+                <img id="preview-img" src="" alt="Preview">
+                <div id="file-name"></div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Product
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    const wrap = document.getElementById('preview-wrap');
+    const img  = document.getElementById('preview-img');
+    const name = document.getElementById('file-name');
+    const zone = document.getElementById('upload-zone');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            img.src = e.target.result;
+            wrap.style.display = 'block';
+            name.textContent = input.files[0].name;
+            zone.style.borderColor = 'var(--navy)';
+            zone.style.background = '#fff';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

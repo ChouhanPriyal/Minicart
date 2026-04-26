@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>MiniCart — Merchant Orders</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --navy: #1a2235;
+            --navy-light: #243048;
+            --gold: #c9a84c;
+            --cream: #f5f0e8;
+            --cream-dark: #ede6d8;
+            --text-dark: #1a2235;
+            --text-muted: #6b7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--navy);
+            padding: 0 2.5rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .logo span { color: var(--gold); }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 1px;
+            background: var(--gold);
+            transition: width 0.25s;
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a.active { color: var(--gold); font-weight: 500; }
+        .nav-links a.active::after { width: 100%; }
+
+        .nav-logout {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.2s;
+        }
+        .nav-logout:hover { color: #fca5a5; }
+
+        /* ── BREADCRUMB ── */
+        .breadcrumb {
+            padding: 1rem 2.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--navy); }
+        .breadcrumb span { color: var(--navy); font-weight: 500; }
+
+        /* ── PAGE ── */
+        .page-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 4rem;
+        }
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: var(--navy);
+            line-height: 1;
+        }
+        .page-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            letter-spacing: 0.03em;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-chip {
+            background: #fff;
+            border: 1px solid rgba(26,34,53,0.07);
+            border-radius: 10px;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            flex: 1;
+            box-shadow: 0 1px 8px rgba(26,34,53,0.05);
+        }
+        .stat-chip-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--navy);
+            line-height: 1;
+        }
+        .stat-chip-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .stat-chip.gold .stat-chip-value { color: var(--gold); }
+
+        /* ── ORDER CARD ── */
+        .order-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid rgba(26,34,53,0.06);
+            box-shadow: 0 2px 16px rgba(26,34,53,0.06);
+            margin-bottom: 1.1rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .order-card:hover {
+            box-shadow: 0 6px 30px rgba(26,34,53,0.11);
+            transform: translateY(-1px);
+        }
+
+        /* Header band */
+        .order-header {
+            background: var(--navy);
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .order-id {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .order-uid {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 0.1rem;
+            letter-spacing: 0.04em;
+        }
+
+        .order-header-right { display: flex; align-items: center; gap: 1.25rem; }
+
+        .order-total-amount {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+        }
+        .order-payment {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+            text-align: right;
+        }
+
+        /* Status pill */
+        .status-pill {
+            padding: 0.28rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        .pill-delivered    { background: #d1fae5; color: #065f46; }
+        .pill-out          { background: #fef3c7; color: #92400e; }
+        .pill-shipped      { background: #dbeafe; color: #1e40af; }
+        .pill-confirmed    { background: #ede9fe; color: #5b21b6; }
+        .pill-default      { background: var(--cream-dark); color: var(--text-muted); }
+
+        /* Body */
+        .order-body { padding: 1.25rem 1.5rem; }
+
+        .section-label {
+            font-size: 0.67rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.55rem;
+            border-bottom: 1px solid var(--cream-dark);
+        }
+
+        .address-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1rem;
+        }
+        .addr-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        .addr-value {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--navy);
+        }
+
+        /* Footer */
+        .order-footer {
+            background: var(--cream);
+            border-top: 1px solid var(--cream-dark);
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .completed-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #065f46;
+            letter-spacing: 0.03em;
+        }
+        .completed-badge svg { color: #059669; }
+
+        .btn-next {
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.375rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-next:hover {
+            background: var(--navy-light);
+            box-shadow: 0 4px 16px rgba(26,34,53,0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid rgba(26,34,53,0.06);
+        }
+        .empty-state svg { color: var(--cream-dark); margin: 0 auto 1rem; display: block; }
+        .empty-state h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: var(--navy);
+            margin-bottom: 0.4rem;
+        }
+        .empty-state p { font-size: 0.875rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <div class="logo">Mini<span>Cart</span></div>
+    <div class="nav-links">
+       <!-- 🏠 HOME -->
+        <a href="/" title="Home">
+            <i data-lucide="home"></i>
+        </a>
+        <!-- ➕ ADD PRODUCT (MIDDLE) -->
+        <a href="/add-product" title="Add Product">
+            <i data-lucide="plus-circle"></i>
+        </a>
+
+
+       <!-- 📦 ORDERS -->
+        <a href="/orders" title="Orders">
+            <i data-lucide="package"></i>
+        </a>
+    </div>
+</nav>
+
+<!-- ── BREADCRUMB ── -->
+<div class="breadcrumb">
+    <a href="/">Dashboard</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>Merchant Orders</span>
+</div>
+
+<!-- ── PAGE ── -->
+<div class="page-wrapper">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Merchant Orders</h1>
+            <p class="page-subtitle">{{ orders|length }} order{% if orders|length != 1 %}s{% endif %} received</p>
+        </div>
+    </div>
+
+    {% if orders|length == 0 %}
+
+    <div class="empty-state">
+        <svg width="56" height="56" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <h3>No orders yet</h3>
+        <p>Orders placed by customers will appear here.</p>
+    </div>
+
+    {% else %}
+
+    {% for order in orders %}
+
+    {% if order.status == 'Delivered' %}
+        {% set pill_class = 'pill-delivered' %}
+    {% elif order.status == 'Out for Delivery' %}
+        {% set pill_class = 'pill-out' %}
+    {% elif order.status == 'Shipped' %}
+        {% set pill_class = 'pill-shipped' %}
+    {% elif order.status == 'Confirmed' %}
+        {% set pill_class = 'pill-confirmed' %}
+    {% else %}
+        {% set pill_class = 'pill-default' %}
+    {% endif %}
+
+    <div class="order-card">
+
+        <!-- Header band -->
+        <div class="order-header">
+            <div>
+                <div class="order-id">Order #{{ order.id }}</div>
+                <div class="order-uid">Customer ID: {{ order.user_id }}</div>
+            </div>
+            <div class="order-header-right">
+                <div class="status-pill {{ pill_class }}">
+                    <span class="status-dot"></span>
+                    {{ order.status }}
+                </div>
+                <div>
+                    <div class="order-total-amount">₹{{ order.total_price }}</div>
+                    <div class="order-payment">{{ order.payment_method }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="order-body">
+            <div class="section-label">Delivery Address</div>
+            <div class="address-grid">
+                <div>
+                    <div class="addr-label">Address</div>
+                    <div class="addr-value">{{ order.address }}</div>
+                </div>
+                <div>
+                    <div class="addr-label">City</div>
+                    <div class="addr-value">{{ order.city }}</div>
+                </div>
+                <div>
+                    <div class="addr-label">Pincode</div>
+                    <div class="addr-value">{{ order.pincode }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="order-footer">
+
+            {% if order.status == 'Delivered' %}
+            <div class="completed-badge">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                Order Completed
+            </div>
+            <span></span>
+            {% else %}
+            <div style="font-size:0.78rem;color:var(--text-muted);">
+                Move to next stage
+            </div>
+            <form method="POST" action="/update-status/{{ order.id }}">
+                <button type="submit" class="btn-next">
+                    Advance Status
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+    {% endif %}
+
+</div>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html> 
