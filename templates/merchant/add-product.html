@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    /* CARD */
+    .ap-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.4);
+      border-radius: 20px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 4px 24px rgba(201, 168, 76, 0.08);
+    }
+
+    /* HEADING */
+    .ap-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #0a1520;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .ap-sub {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #7a6e5f;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .ap-divider {
+      border: none;
+      border-top: 1px solid #e8dfc8;
+      margin-bottom: 24px;
+    }
+
+    /* FIELDS */
+    .ap-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+    .ap-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8a7a66;
+      font-weight: 500;
+    }
+    .ap-input,
+    .ap-textarea,
+    .ap-select {
+      background: #f8f3e8;
+      border: 1px solid #e0d4b0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #1a2b3c;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .ap-input:focus,
+    .ap-textarea:focus,
+    .ap-select:focus {
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+    }
+    .ap-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .ap-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8882c' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    /* OR SEPARATOR */
+    .ap-or {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 14px;
+    }
+    .ap-or-line { flex: 1; height: 1px; background: #e8dfc8; }
+    .ap-or-text {
+      font-size: 11px;
+      color: #a09070;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* FILE UPLOAD */
+    .ap-file-wrap {
+      background: #f8f3e8;
+      border: 1px dashed #c9a84c;
+      border-radius: 10px;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .ap-file-wrap:hover { background: #f2ebd8; }
+    .ap-file-wrap i { font-size: 26px; color: #a8882c; }
+    .ap-file-hint { font-size: 12px; color: #8a7a66; letter-spacing: 0.5px; }
+    .ap-file-name { font-size: 12px; color: #8a6e1a; font-weight: 500; margin-top: 2px; }
+    .ap-file-input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* BUTTON */
+    .ap-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 15px;
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      border: none;
+      border-radius: 10px;
+      color: #f0d98c;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: opacity 0.2s;
+    }
+    .ap-btn:hover { opacity: 0.88; }
+    .ap-btn i { font-size: 17px; }
+
+    /* BACK LINK */
+    .ap-back {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: #8a7a66;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .ap-back:hover { color: #a8882c; }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+      .ap-card { padding: 24px 16px; }
+      .ap-heading { font-size: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ap-card">
+
+    <div class="ap-heading">Add Product</div>
+    <div class="ap-sub">Fill in the details below</div>
+    <hr class="ap-divider">
+
+    <form method="POST" enctype="multipart/form-data">
+
+      <!-- PRODUCT NAME -->
+      <div class="ap-field">
+        <label class="ap-label">Product Name</label>
+        <input class="ap-input" type="text" name="name"
+               placeholder="e.g. Handcrafted Kurta" required>
+      </div>
+
+      <!-- PRICE -->
+      <div class="ap-field">
+        <label class="ap-label">Price (₹)</label>
+        <input class="ap-input" type="number" name="price"
+               placeholder="e.g. 1200" required>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="ap-field">
+        <label class="ap-label">Description</label>
+        <textarea class="ap-textarea" name="description"
+                  rows="4" placeholder="Describe your product..." required></textarea>
+      </div>
+
+      <!-- CATEGORY -->
+      <div class="ap-field">
+        <label class="ap-label">Category</label>
+        <select class="ap-select" name="category">
+          <option value="">Select category</option>
+          {% for c in categories %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- OR SEPARATOR -->
+      <div class="ap-or">
+        <div class="ap-or-line"></div>
+        <span class="ap-or-text">or add new</span>
+        <div class="ap-or-line"></div>
+      </div>
+
+      <!-- NEW CATEGORY -->
+      <div class="ap-field" style="margin-top: -6px;">
+        <label class="ap-label">New Category</label>
+        <input class="ap-input" type="text" name="new_category"
+               placeholder="e.g. Accessories">
+      </div>
+
+      <!-- IMAGE UPLOAD -->
+      <div class="ap-field">
+        <label class="ap-label">Product Image</label>
+        <div class="ap-file-wrap" id="dropZone">
+          <i class="ti ti-photo-up" aria-hidden="true"></i>
+          <span class="ap-file-hint">Click to upload image</span>
+          <span class="ap-file-name" id="fileName">No file chosen</span>
+          <input class="ap-file-input" type="file" name="image"
+                 accept="image/*" required id="fileInput">
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <button type="submit" class="ap-btn">
+        <i class="ti ti-circle-plus" aria-hidden="true"></i>
+        Add Product
+      </button>
+
+    </form>
+
+    <a href="/merchant-dashboard" class="ap-back">← Back to Dashboard</a>
+
+  </div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function () {
+      const name = this.files[0] ? this.files[0].name : 'No file chosen';
+      document.getElementById('fileName').textContent = name;
+    });
+  </script>
+
+</body>
+</html>

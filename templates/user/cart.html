@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiniCart — My Cart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0e1f3b;
+      --navy-mid:   #162d55;
+      --navy-light: #1e3c6f;
+      --cream:      #f8f3e8;
+      --cream-dark: #ede5d0;
+      --gold:       #c9a84c;
+      --gold-light: #e2c06a;
+      --gold-pale:  #f5e9c4;
+      --text-dark:  #0e1f3b;
+      --text-muted: #6b7a96;
+      --radius-sm:  6px;
+      --radius-md:  12px;
+      --radius-lg:  18px;
+      --shadow-card: 0 2px 16px rgba(14,31,59,0.10);
+      --shadow-hover: 0 8px 32px rgba(14,31,59,0.18);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed; top: 1rem; right: 1rem; z-index: 999;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 10px 18px; border-radius: var(--radius-sm); color: #fff;
+      font-size: 14px; font-weight: 500; box-shadow: var(--shadow-card);
+      animation: slideIn 0.3s ease;
+    }
+    .toast.success { background: #2a7a5a; }
+    .toast.error   { background: #b53a3a; }
+    .toast.info    { background: var(--navy-mid); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: var(--navy);
+      padding: 0 1.5rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 2px solid var(--gold);
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+      text-decoration: none;
+    }
+    .brand span { color: #fff; }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-links a {
+      display: flex; flex-direction: column; align-items: center;
+      text-decoration: none; color: var(--cream-dark);
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      transition: background 0.2s, color 0.2s;
+      font-size: 13px; font-weight: 500;
+    }
+    .nav-links a:hover { background: var(--navy-light); color: var(--gold-light); }
+    .nav-links a .nav-icon { font-size: 18px; margin-bottom: 2px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--navy-mid);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid rgba(201,168,76,0.25);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; color: var(--cream);
+      font-weight: 700;
+    }
+    .cart-badge {
+      background: var(--gold); color: var(--navy);
+      font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 99px;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .content {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── CART ITEM CARD ── */
+    .cart-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(201,168,76,0.12);
+      display: flex;
+      gap: 0;
+      overflow: hidden;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .cart-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-img {
+      width: 140px; flex-shrink: 0;
+      background: var(--cream-dark);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .card-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .cart-card:hover .card-img img { transform: scale(1.05); }
+
+    .card-info {
+      flex: 1; padding: 1.1rem 1.25rem;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+
+    .card-top { margin-bottom: 0.75rem; }
+    .card-name {
+      font-size: 1rem; font-weight: 600; color: var(--navy);
+      margin-bottom: 4px; line-height: 1.4;
+    }
+    .card-desc {
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+    }
+
+    .card-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem; font-weight: 700; color: var(--navy-mid);
+    }
+    .card-price::before { content: "₹"; font-size: 0.85em; color: var(--gold); }
+
+    /* quantity controls */
+    .qty-wrap {
+      display: flex; align-items: center; gap: 0;
+      border: 1px solid var(--cream-dark); border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .qty-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      background: var(--cream-dark); color: var(--navy);
+      text-decoration: none; font-size: 18px; font-weight: 600; line-height: 1;
+      transition: background 0.15s, color 0.15s;
+    }
+    .qty-btn:hover { background: var(--gold); color: var(--navy); }
+    .qty-num {
+      width: 38px; text-align: center;
+      font-size: 14px; font-weight: 700; color: var(--navy);
+      background: #fff;
+    }
+
+    .btn-remove {
+      display: flex; align-items: center; gap: 5px;
+      background: transparent; border: 1px solid rgba(181,58,58,0.35);
+      color: #b53a3a; padding: 6px 14px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; text-decoration: none;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-remove:hover { background: #b53a3a; color: #fff; border-color: #b53a3a; }
+
+    /* ── ORDER SUMMARY ── */
+    .summary-card {
+      background: var(--navy);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-hover);
+      padding: 1.5rem 1.75rem;
+      border: 1px solid rgba(201,168,76,0.3);
+      margin-top: 0.5rem;
+    }
+    .summary-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; color: var(--gold);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 1.1rem; font-weight: 600;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid rgba(201,168,76,0.15);
+      font-size: 14px; color: rgba(248,243,232,0.7);
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-row span:last-child { color: var(--cream); font-weight: 600; }
+
+    .summary-total {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 1rem; padding-top: 1rem;
+      border-top: 2px solid rgba(201,168,76,0.4);
+    }
+    .summary-total-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; color: var(--cream); font-weight: 700;
+    }
+    .summary-total-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; color: var(--gold-light); font-weight: 700;
+    }
+    .summary-total-amount::before { content: "₹"; font-size: 0.8em; }
+
+    .btn-checkout {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      background: var(--gold); color: var(--navy);
+      padding: 14px; border-radius: var(--radius-md);
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+      letter-spacing: 0.5px; margin-top: 1.25rem;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-checkout:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-checkout:active { transform: scale(0.98); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center; padding: 5rem 2rem; color: var(--text-muted);
+    }
+    .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.35; }
+    .empty-state h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; color: var(--navy); margin-bottom: 8px;
+    }
+    .empty-state p { font-size: 14px; margin-bottom: 1.5rem; }
+    .btn-shop {
+      display: inline-block; text-decoration: none;
+      background: var(--navy); color: var(--gold-light);
+      padding: 11px 28px; border-radius: var(--radius-md);
+      font-weight: 600; font-size: 14px;
+      transition: background 0.2s;
+    }
+    .btn-shop:hover { background: var(--navy-light); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 560px) {
+      .card-img { width: 100px; }
+      .card-info { padding: 0.85rem 0.9rem; }
+      .card-name { font-size: 0.9rem; }
+      .card-price { font-size: 1.05rem; }
+      .content { padding: 0 0.75rem; margin: 1rem auto; }
+      .page-header { padding: 1rem 1rem; }
+      .page-header h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-wrap">
+      {% for category, message in messages %}
+        <div class="toast {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => {
+          t.style.transition = '0.4s'; t.style.opacity = '0';
+          setTimeout(() => t.remove(), 400);
+        });
+      }, 2600);
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav>
+  <a href="/user-home" class="brand">Mini<span>Cart</span></a>
+  <div class="nav-links">
+    <a href="/user-home"><span class="nav-icon">🏠</span>Home</a>
+    <a href="/profile"><span class="nav-icon">👤</span>Profile</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>My Cart</h1>
+  {% if cart_items %}
+    <span class="cart-badge">{{ cart_items|length }} item{{ 's' if cart_items|length != 1 }}</span>
+  {% endif %}
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  {% if cart_items %}
+
+    <!-- CART ITEMS -->
+    {% for item in cart_items %}
+    <div class="cart-card">
+
+      <div class="card-img">
+        <img src="{{ item[4] }}" alt="{{ item[1] }}" loading="lazy">
+      </div>
+
+      <div class="card-info">
+        <div class="card-top">
+          <p class="card-name">{{ item[1] }}</p>
+          <p class="card-desc">{{ item[3] }}</p>
+        </div>
+
+        <div class="card-bottom">
+          <p class="card-price">{{ item[2] }}</p>
+
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <!-- QTY -->
+            <div class="qty-wrap">
+              <a href="/decrease/{{ item[0] }}" class="qty-btn">−</a>
+              <span class="qty-num">{{ item[5] }}</span>
+              <a href="/increase/{{ item[0] }}" class="qty-btn">+</a>
+            </div>
+
+            <!-- REMOVE -->
+            <a href="/remove_from_cart/{{ item[0] }}" class="btn-remove">
+              🗑 Remove
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+
+    <!-- ORDER SUMMARY -->
+    <div class="summary-card">
+      <p class="summary-title">Order Summary</p>
+
+      {% for item in cart_items %}
+      <div class="summary-row">
+        <span>{{ item[1] }} × {{ item[5] }}</span>
+        <span>₹{{ item[2] * item[5] if item[5] else item[2] }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="summary-total">
+        <span class="summary-total-label">Total Amount</span>
+        <span class="summary-total-amount">{{ total }}</span>
+      </div>
+
+      <a href="/checkout" class="btn-checkout">Proceed to Checkout →</a>
+    </div>
+
+  {% else %}
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything yet.</p>
+      <a href="/all-products" class="btn-shop">Browse Products</a>
+    </div>
+
+  {% endif %}
+
+</div>
+
+</body>
+</html>

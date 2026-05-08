@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Feedback</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
+
+    /* ── NAVBAR ── */
+    .mn-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .mn-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .mn-nav-right { display: flex; align-items: center; gap: 6px; }
+    .mn-links { display: flex; align-items: center; gap: 2px; }
+    .mn-link {
+      color: #a09070;
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 11px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .mn-link:hover { color: #f0d98c; background: rgba(201, 168, 76, 0.08); }
+    .mn-link.active { color: #f0d98c; background: rgba(201, 168, 76, 0.13); font-weight: 500; }
+    .mn-divider { width: 1px; height: 20px; background: rgba(201, 168, 76, 0.2); margin: 0 4px; }
+
+    /* DROPDOWN */
+    .mn-drop-wrap { position: relative; }
+    .mn-drop-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 8px; padding: 6px 13px;
+      color: #f0d98c; font-size: 13px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+    .mn-drop-btn:hover { background: rgba(201, 168, 76, 0.18); }
+    .mn-drop-btn i { font-size: 16px; color: #c9a84c; }
+    .mn-caret { font-size: 13px; color: #a09070; transition: transform 0.2s; }
+    .mn-caret.open { transform: rotate(180deg); }
+    .mn-dropdown {
+      display: none; position: absolute; right: 0;
+      top: calc(100% + 8px);
+      background: #0d1e2e;
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 12px; min-width: 160px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .mn-dropdown.show { display: block; }
+    .mn-drop-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 16px; font-size: 13px;
+      color: #c8bfa8; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .mn-drop-item:hover { background: rgba(201, 168, 76, 0.1); color: #f0d98c; }
+    .mn-drop-item i { font-size: 15px; }
+    .mn-drop-item.danger { color: #e08080; }
+    .mn-drop-item.danger:hover { background: rgba(200, 80, 80, 0.1); color: #f09090; }
+    .mn-drop-sep { border: none; border-top: 1px solid rgba(201, 168, 76, 0.15); }
+
+    /* ── CONTENT ── */
+    .mf-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 52px;
+    }
+    .mf-page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 600;
+      color: #0a1520; letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .mf-page-sub {
+      font-size: 12px; color: #7a6e5f;
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    /* GRID */
+    .mf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* FEEDBACK CARD */
+    .mf-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.35);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(201, 168, 76, 0.06);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .mf-card:hover {
+      box-shadow: 0 6px 24px rgba(201, 168, 76, 0.14);
+      transform: translateY(-2px);
+    }
+
+    /* THUMBNAIL */
+    .mf-thumb {
+      width: 100%; height: 180px;
+      object-fit: cover; display: block;
+      background: #f0e8d0;
+    }
+    .mf-thumb-ph {
+      width: 100%; height: 180px;
+      background: #f0e8d0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mf-thumb-ph i { font-size: 40px; color: #c9a84c; }
+
+    /* CARD BODY */
+    .mf-body { padding: 18px; }
+    .mf-product-name {
+      font-size: 15px; font-weight: 500;
+      color: #0a1520; margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mf-by {
+      font-size: 12px; color: #8a7a66;
+      display: flex; align-items: center; gap: 5px;
+      margin-bottom: 12px;
+    }
+    .mf-by i { font-size: 13px; color: #a8882c; }
+
+    /* STARS */
+    .mf-stars { display: flex; gap: 2px; margin-bottom: 12px; }
+    .mf-star { font-size: 15px; color: #c9a84c; }
+    .mf-star.empty { color: #ddd4b8; }
+
+    /* DIVIDER */
+    .mf-divider { border: none; border-top: 1px solid #ede5cc; margin: 10px 0; }
+
+    /* COMMENT */
+    .mf-comment {
+      background: #f8f3e8;
+      border: 1px solid #e8dfc8;
+      border-radius: 10px;
+      padding: 12px 14px 12px 28px;
+      font-size: 13px; color: #4a3c28;
+      line-height: 1.6; margin-bottom: 12px;
+      position: relative;
+    }
+    .mf-comment::before {
+      content: '\201C';
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; color: #c9a84c;
+      position: absolute; top: -4px; left: 10px;
+      line-height: 1;
+    }
+
+    /* DATE */
+    .mf-date {
+      font-size: 11px; color: #a09070;
+      display: flex; align-items: center;
+      gap: 5px; letter-spacing: 0.5px;
+    }
+    .mf-date i { font-size: 12px; }
+
+    /* EMPTY STATE */
+    .mf-empty {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.35);
+      border-radius: 16px;
+      padding: 60px 20px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(201, 168, 76, 0.06);
+    }
+    .mf-empty i { font-size: 52px; color: #d4c9aa; display: block; margin-bottom: 16px; }
+    .mf-empty-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px; font-weight: 600;
+      color: #0a1520; margin-bottom: 6px;
+    }
+    .mf-empty-sub { font-size: 13px; color: #8a7a66; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .mn-links { display: none; }
+      .mn-nav { padding: 0 14px; }
+      .mf-container { padding: 16px 10px 40px; }
+      .mf-page-title { font-size: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="mn-nav">
+    <span class="mn-brand">Minicart</span>
+
+    <div class="mn-nav-right">
+      <div class="mn-links">
+        <a href="/merchant-dashboard" class="mn-link">Dashboard</a>
+        <a href="/add-product"        class="mn-link">Add Product</a>
+        <a href="/products"           class="mn-link">Products</a>
+        <a href="/orders"             class="mn-link">Orders</a>
+        <a href="/feedback"           class="mn-link active">Feedback</a>
+        <div class="mn-divider"></div>
+      </div>
+
+      <div class="mn-drop-wrap">
+        <button class="mn-drop-btn" onclick="toggleDrop()">
+          <i class="ti ti-user-circle"></i>
+          {{ session.user_name }}
+          <i class="ti ti-chevron-down mn-caret" id="mnCaret"></i>
+        </button>
+        <div class="mn-dropdown" id="mnDropdown">
+          <a href="/merchant/profile" class="mn-drop-item">
+            <i class="ti ti-user"></i> My Profile
+          </a>
+          <hr class="mn-drop-sep">
+          <a href="/logout" class="mn-drop-item danger">
+            <i class="ti ti-logout"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="mf-container">
+
+    <div class="mf-page-title">Customer Feedback</div>
+    <div class="mf-page-sub">What your customers are saying</div>
+
+    {% if feedbacks %}
+
+      <div class="mf-grid">
+
+        {% for f in feedbacks %}
+        <div class="mf-card">
+
+          <!-- PRODUCT IMAGE -->
+          {% if f[2] %}
+            <img src="{{ f[2] }}" class="mf-thumb" alt="{{ f[1] }}">
+          {% else %}
+            <div class="mf-thumb-ph">
+              <i class="ti ti-photo"></i>
+            </div>
+          {% endif %}
+
+          <div class="mf-body">
+
+            <!-- PRODUCT NAME -->
+            <div class="mf-product-name">{{ f[1] }}</div>
+
+            <!-- CUSTOMER NAME -->
+            <div class="mf-by">
+              <i class="ti ti-user"></i> {{ f[3] }}
+            </div>
+
+            <!-- STAR RATING -->
+            <div class="mf-stars">
+              {% for i in range(5) %}
+                {% if i < f[4] %}
+                  <span class="mf-star">★</span>
+                {% else %}
+                  <span class="mf-star empty">★</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <hr class="mf-divider">
+
+            <!-- COMMENT -->
+            <div class="mf-comment">{{ f[5] }}</div>
+
+            <!-- DATE -->
+            <div class="mf-date">
+              <i class="ti ti-calendar"></i> {{ f[6] }}
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+
+    {% else %}
+
+      <div class="mf-empty">
+        <i class="ti ti-message-off"></i>
+        <div class="mf-empty-title">No Feedback Yet</div>
+        <div class="mf-empty-sub">Customer feedback will appear here once they start reviewing your products.</div>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+  <script>
+    function toggleDrop() {
+      document.getElementById('mnDropdown').classList.toggle('show');
+      document.getElementById('mnCaret').classList.toggle('open');
+    }
+    window.addEventListener('click', function (e) {
+      if (!e.target.closest('.mn-drop-wrap')) {
+        document.getElementById('mnDropdown').classList.remove('show');
+        document.getElementById('mnCaret').classList.remove('open');
+      }
+    });
+  </script>
+
+</body>
+</html>

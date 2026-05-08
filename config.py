@@ -1,10 +1,4 @@
-import mysql.connector
-
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Pr@290105",
-    database="ecommerce"
-)
-
-cursor = db.cursor(dictionary=True, buffered=True)
+MYSQL_HOST = "localhost"
+MYSQL_USER = "root"
+MYSQL_PASSWORD = "Pr@290105"
+MYSQL_DB = "ecommerce"

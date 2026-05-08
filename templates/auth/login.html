@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Login — MiniCart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy:      #04111F;
+      --navy-2:    #071929;
+      --navy-3:    #0C2240;
+      --navy-4:    #113360;
+      --gold:      #C8A84B;
+      --gold-2:    #DFC070;
+      --gold-3:    #EDD898;
+      --cream:     #FAF6ED;
+      --cream-2:   #F2EAD5;
+      --cream-3:   #E2D5B8;
+      --text:      #0E0B04;
+      --text-mid:  #5C5035;
+      --text-soft: #9C8E70;
+      --white:     #FFFFFF;
+      --r-sm:      8px;
+      --r-md:      14px;
+      --r-lg:      22px;
+      --shadow-md: 0 8px 36px rgba(4,17,31,.14);
+      --shadow-lg: 0 24px 72px rgba(4,17,31,.22);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND DECORATION ── */
+    .bg-deco {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .bg-deco::before {
+      content: '';
+      position: absolute;
+      top: -160px; left: -160px;
+      width: 520px; height: 520px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,168,75,.09) 0%, transparent 70%);
+    }
+    .bg-deco::after {
+      content: '';
+      position: absolute;
+      bottom: -120px; right: -120px;
+      width: 440px; height: 440px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(4,17,31,.06) 0%, transparent 70%);
+    }
+    .bg-lines {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -50deg,
+        rgba(200,168,75,.025) 0px, rgba(200,168,75,.025) 1px,
+        transparent 1px, transparent 36px
+      );
+    }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed;
+      top: 20px; right: 20px; left: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 18px;
+      border-radius: var(--r-md);
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      max-width: 340px;
+      width: 100%;
+      animation: toastIn .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(-14px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .toast.success {
+      background: #0C2E1A; color: #5ECC8A;
+      border: 1px solid rgba(94,204,138,.25);
+    }
+    .toast.error {
+      background: #2A0C0C; color: #E07070;
+      border: 1px solid rgba(224,112,112,.25);
+    }
+    .toast.info {
+      background: var(--navy-3); color: var(--gold-2);
+      border: 1px solid rgba(200,168,75,.25);
+    }
+    .toast-icon { font-size: 15px; flex-shrink: 0; }
+
+    /* ── MAIN LAYOUT ── */
+    .page {
+      position: relative; z-index: 1;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      min-height: 100vh;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--r-lg);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      animation: cardUp .5s cubic-bezier(.34,1.2,.64,1) both;
+    }
+    @keyframes cardUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Card top — navy header */
+    .card-header {
+      background: var(--navy);
+      padding: 36px 36px 32px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .card-header::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,168,75,.13) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+      opacity: .35;
+    }
+
+    .brand-mark {
+      width: 54px; height: 54px;
+      background: rgba(200,168,75,.12);
+      border: 1.5px solid rgba(200,168,75,.3);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 16px;
+      position: relative; z-index: 1;
+    }
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold-2);
+      letter-spacing: .05em;
+      position: relative; z-index: 1;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-style: italic;
+      color: rgba(250,246,237,.35);
+      margin-top: 4px;
+      letter-spacing: .04em;
+      position: relative; z-index: 1;
+    }
+
+    /* Card body */
+    .card-body { padding: 32px 36px 36px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: var(--cream-3);
+    }
+
+    /* Form fields */
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 7px;
+    }
+
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 15px;
+      pointer-events: none;
+      opacity: .5;
+    }
+    .field input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      background: var(--cream);
+      border: 1.5px solid var(--cream-3);
+      border-radius: var(--r-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      transition: all .2s;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .field input::placeholder { color: var(--text-soft); font-size: 13.5px; }
+    .field input:focus {
+      border-color: var(--gold);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(200,168,75,.12);
+    }
+
+    /* Password toggle */
+    .pass-toggle {
+      position: absolute;
+      right: 13px; top: 50%; transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer;
+      font-size: 15px;
+      opacity: .45;
+      transition: opacity .2s;
+      padding: 4px;
+      line-height: 1;
+    }
+    .pass-toggle:hover { opacity: .8; }
+
+    /* Forgot link */
+    .forgot-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -10px;
+      margin-bottom: 22px;
+    }
+    .forgot-link {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .forgot-link:hover { color: var(--gold); }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--navy);
+      border: 1.5px solid rgba(200,168,75,.2);
+      border-radius: var(--r-sm);
+      color: var(--gold-2);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(200,168,75,.08) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity .25s;
+    }
+    .btn-submit:hover {
+      background: var(--navy-3);
+      border-color: rgba(200,168,75,.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(4,17,31,.25);
+    }
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-arrow { font-size: 17px; transition: transform .2s; }
+    .btn-submit:hover .btn-arrow { transform: translateX(3px); }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 18px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--cream-3); }
+    .divider-text { font-size: 11px; color: var(--text-soft); font-weight: 500; letter-spacing: .06em; }
+
+    /* Register link */
+    .register-row {
+      text-align: center;
+    }
+    .register-row p {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+    .register-link {
+      font-weight: 700;
+      color: var(--navy);
+      text-decoration: none;
+      border-bottom: 1.5px solid rgba(200,168,75,.4);
+      padding-bottom: 1px;
+      transition: all .2s;
+    }
+    .register-link:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    /* Merchant login alternate */
+    .alt-login {
+      margin-top: 12px;
+    }
+    .alt-login a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px;
+      border-radius: var(--r-sm);
+      border: 1.5px solid var(--cream-3);
+      background: var(--cream);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .alt-login a:hover {
+      border-color: rgba(200,168,75,.4);
+      background: var(--gold-pale, #F7EDCF);
+      color: var(--navy);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      position: relative; z-index: 1;
+      background: var(--navy);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(200,168,75,.1);
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--gold); letter-spacing: .06em;
+    }
+    .footer p { font-size: 11px; color: rgba(250,246,237,.22); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .card-header { padding: 28px 24px 24px; }
+      .card-body { padding: 24px 24px 28px; }
+      .toast-wrap { right: 14px; left: 14px; }
+      .toast { max-width: 100%; }
+      .footer { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BG DECORATION -->
+<div class="bg-deco"></div>
+<div class="bg-lines"></div>
+
+<!-- TOAST -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-wrap" id="toastWrap">
+      {% for category, message in messages %}
+        <div class="toast {{ category }}">
+          <span class="toast-icon">
+            {% if category == 'success' %}✓{% elif category == 'error' %}✕{% else %}✦{% endif %}
+          </span>
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        const wrap = document.getElementById('toastWrap');
+        if (!wrap) return;
+        wrap.querySelectorAll('.toast').forEach(t => {
+          t.style.transition = 'opacity .4s, transform .4s';
+          t.style.opacity = '0';
+          t.style.transform = 'translateY(-10px)';
+        });
+        setTimeout(() => wrap.remove(), 450);
+      }, 2800);
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- PAGE -->
+<div class="page">
+  <div class="card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+      <div class="brand-mark">🛒</div>
+      <div class="brand-name">MiniCart</div>
+      <div class="card-title">Welcome back</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+      <div class="section-label">Sign in to your account</div>
+
+      <form method="POST">
+
+        <!-- Email -->
+        <div class="field">
+          <label for="email">Email Address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input
+              type="email" id="email" name="email"
+              placeholder="you@example.com" required
+              autocomplete="email">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password" id="password" name="password"
+              placeholder="Enter your password" required
+              autocomplete="current-password">
+            <button type="button" class="pass-toggle" id="passToggle" title="Show/hide password">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <!-- Forgot -->
+        <div class="forgot-row">
+          <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit">
+          Sign In <span class="btn-arrow">→</span>
+        </button>
+
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">OR</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Register -->
+      <div class="register-row">
+        <p>Don't have an account? &nbsp;<a href="/register" class="register-link">Create one</a></p>
+      </div>
+
+      <!-- Merchant alternate -->
+      <div class="alt-login">
+        <a href="/merchant-login">
+          🏪 &nbsp;Login as Merchant
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand">MiniCart</div>
+  <p>© 2026 MiniCart. All rights reserved.</p>
+  <p>Made with ♥ for great shopping</p>
+</footer>
+
+<script>
+  // Password toggle
+  const passInput  = document.getElementById('password');
+  const passToggle = document.getElementById('passToggle');
+  passToggle.addEventListener('click', () => {
+    const show = passInput.type === 'password';
+    passInput.type = show ? 'text' : 'password';
+    passToggle.textContent = show ? '🙈' : '👁';
+  });
+</script>
+
+</body>
+</html>

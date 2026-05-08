@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MiniCart — All Products</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0e1f3b;
+      --navy-mid:   #162d55;
+      --navy-light: #1e3c6f;
+      --cream:      #f8f3e8;
+      --cream-dark: #ede5d0;
+      --gold:       #c9a84c;
+      --gold-light: #e2c06a;
+      --gold-pale:  #f5e9c4;
+      --text-dark:  #0e1f3b;
+      --text-muted: #6b7a96;
+      --radius-sm:  6px;
+      --radius-md:  12px;
+      --radius-lg:  18px;
+      --shadow-card: 0 2px 16px rgba(14,31,59,0.10);
+      --shadow-hover: 0 8px 32px rgba(14,31,59,0.18);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      min-height: 100vh;
+    }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed; top: 1rem; right: 1rem; z-index: 999; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 10px 18px; border-radius: var(--radius-sm); color: #fff;
+      font-size: 14px; font-weight: 500; box-shadow: var(--shadow-card);
+      animation: slideIn 0.3s ease;
+    }
+    .toast.success { background: #2a7a5a; }
+    .toast.error   { background: #b53a3a; }
+    .toast.info    { background: var(--navy-mid); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: var(--navy);
+      padding: 0 1.5rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 2px solid var(--gold);
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+      text-decoration: none;
+    }
+    .brand span { color: #fff; }
+    .nav-links {
+      display: flex; gap: 6px;
+    }
+    .nav-links a {
+      display: flex; flex-direction: column; align-items: center;
+      text-decoration: none; color: var(--cream-dark);
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      transition: background 0.2s, color 0.2s; font-size: 13px; font-weight: 500;
+    }
+    .nav-links a:hover { background: var(--navy-light); color: var(--gold-light); }
+    .nav-links a .nav-icon { font-size: 18px; margin-bottom: 2px; }
+
+    /* ── SEARCH BAR ── */
+    .search-wrap {
+      background: var(--navy-mid);
+      padding: 1rem 1.5rem;
+      display: flex; gap: 10px; align-items: center;
+      border-bottom: 1px solid rgba(201,168,76,0.25);
+    }
+    .search-wrap input {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .search-wrap input::placeholder { color: rgba(248,243,232,0.45); }
+    .search-wrap input:focus { border-color: var(--gold); background: rgba(255,255,255,0.12); }
+    .btn-search {
+      background: var(--gold); color: var(--navy); border: none;
+      padding: 10px 20px; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+    }
+    .btn-search:hover { background: var(--gold-light); }
+    .btn-search:active { transform: scale(0.97); }
+    .btn-clear {
+      background: transparent; color: var(--cream-dark); border: 1px solid rgba(248,243,232,0.25);
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 14px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-clear:hover { background: rgba(255,255,255,0.08); }
+
+    /* ── LAYOUT ── */
+    .main-layout {
+      display: flex; align-items: flex-start;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--navy);
+      min-height: calc(100vh - 120px);
+      padding: 1.5rem 1rem;
+      position: sticky; top: 64px;
+      overflow-y: auto;
+    }
+    @media (max-width: 767px) { .sidebar { display: none; } }
+
+    .sidebar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1rem; padding-left: 10px;
+    }
+    .cat-link {
+      display: block; padding: 9px 12px; border-radius: var(--radius-sm);
+      color: rgba(248,243,232,0.75); text-decoration: none; font-size: 14px; font-weight: 400;
+      transition: background 0.15s, color 0.15s; margin-bottom: 2px;
+    }
+    .cat-link:hover { background: var(--navy-light); color: var(--gold-light); }
+    .cat-link.active { background: rgba(201,168,76,0.15); color: var(--gold-light); font-weight: 600; border-left: 3px solid var(--gold); }
+
+    .divider { border: none; border-top: 1px solid rgba(201,168,76,0.2); margin: 1.25rem 0; }
+
+    .price-label { color: var(--gold-light); font-size: 13px; font-weight: 500; padding-left: 10px; }
+    .price-label span { color: #fff; font-weight: 600; }
+
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; height: 4px;
+      background: rgba(201,168,76,0.25); border-radius: 2px; margin-top: 10px; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--gold); border: 2px solid var(--navy); cursor: pointer;
+    }
+
+    /* ── PRODUCT GRID ── */
+    .products-area { flex: 1; padding: 1.5rem; }
+
+    .result-info {
+      font-size: 13px; color: var(--text-muted); margin-bottom: 1.25rem; font-weight: 500;
+    }
+    .result-info strong { color: var(--text-dark); }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 480px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+      .products-area { padding: 1rem 0.75rem; }
+    }
+
+    /* ── PRODUCT CARD ── */
+    .product-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      border: 1px solid rgba(201,168,76,0.12);
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .card-img-wrap { position: relative; overflow: hidden; height: 160px; background: var(--cream-dark); }
+    .card-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.4s ease;
+      display: block;
+    }
+    .product-card:hover .card-img-wrap img { transform: scale(1.06); }
+
+    .card-body { padding: 0.9rem 1rem 1rem; flex: 1; display: flex; flex-direction: column; }
+
+    .card-name {
+      font-size: 14px; font-weight: 600; color: var(--navy);
+      margin-bottom: 4px; line-height: 1.4;
+      text-decoration: none; display: block;
+    }
+    .card-name:hover { color: var(--gold); }
+
+    .card-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; color: var(--navy-mid); font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .card-price::before { content: "₹"; font-size: 0.85em; color: var(--gold); }
+
+    .btn-cart {
+      display: block; text-align: center; text-decoration: none;
+      background: var(--navy); color: var(--gold-light);
+      padding: 9px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+      transition: background 0.2s, color 0.2s;
+      margin-bottom: 8px;
+    }
+    .btn-cart:hover { background: var(--navy-light); color: var(--gold); }
+
+    .btn-feedback {
+      width: 100%; background: transparent; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 7px; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-feedback:hover { background: var(--gold-pale); border-color: var(--gold); }
+
+    /* ── FEEDBACK FORM ── */
+    .feedback-form { display: none; margin-top: 10px; }
+    .feedback-form.open { display: block; }
+
+    .feedback-form input,
+    .feedback-form select,
+    .feedback-form textarea {
+      width: 100%; font-family: 'DM Sans', sans-serif;
+      border: 1px solid var(--cream-dark); border-radius: var(--radius-sm);
+      padding: 7px 10px; font-size: 12px; color: var(--navy);
+      background: var(--cream); margin-bottom: 6px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .feedback-form input:focus,
+    .feedback-form select:focus,
+    .feedback-form textarea:focus { border-color: var(--gold); }
+    .feedback-form textarea { resize: vertical; min-height: 56px; }
+
+    .btn-submit {
+      width: 100%; background: var(--gold); color: var(--navy);
+      border: none; padding: 8px; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 13px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-submit:hover { background: var(--gold-light); }
+
+    /* ── REVIEWS ── */
+    .reviews-wrap {
+      margin-top: 10px; max-height: 90px; overflow-y: auto;
+      border-top: 1px solid var(--cream-dark); padding-top: 8px;
+    }
+    .review-item {
+      font-size: 11px; color: var(--text-muted);
+      padding: 4px 0; border-bottom: 1px solid var(--cream-dark);
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-item b { color: var(--navy-mid); font-size: 11.5px; }
+    .review-stars { color: var(--gold); font-size: 11px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state p { font-size: 1rem; }
+
+    /* ── MOBILE CATEGORY CHIPS ── */
+    .mobile-cats {
+      display: none;
+      overflow-x: auto; gap: 8px; padding: 0.75rem;
+      background: var(--navy); border-bottom: 1px solid rgba(201,168,76,0.2);
+      scrollbar-width: none;
+    }
+    .mobile-cats::-webkit-scrollbar { display: none; }
+    @media (max-width: 767px) { .mobile-cats { display: flex; } }
+    .chip {
+      white-space: nowrap; padding: 5px 14px; border-radius: 99px;
+      font-size: 12px; font-weight: 600; color: rgba(248,243,232,0.75);
+      border: 1px solid rgba(201,168,76,0.3); text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chip:hover, .chip.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="toast-wrap">
+      {% for category, message in messages %}
+        <div class="toast {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => {
+          t.style.transition = '0.4s'; t.style.opacity = '0';
+          setTimeout(() => t.remove(), 400);
+        });
+      }, 2600);
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav>
+  <a href="/user-home" class="brand">Mini<span>Cart</span></a>
+  <div class="nav-links">
+    <a href="/user-home"><span class="nav-icon">🏠</span>Home</a>
+    <a href="/cart"><span class="nav-icon">🛒</span>Cart</a>
+    <a href="/profile"><span class="nav-icon">👤</span>Profile</a>
+  </div>
+</nav>
+
+<!-- MOBILE CATEGORY CHIPS -->
+<div class="mobile-cats">
+  <a href="/all-products" class="chip {% if not selected_category %}active{% endif %}">All</a>
+  {% for c in categories %}
+    <a href="/all-products?category={{ c[0] }}"
+       class="chip {% if selected_category == c[0] %}active{% endif %}">
+      {{ c[0] }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- SEARCH -->
+<div class="search-wrap">
+  <input type="text" id="searchInput"
+         value="{{ search or '' }}"
+         placeholder="Search for products...">
+  <button class="btn-search" onclick="searchProduct()">Search</button>
+  <button class="btn-clear" onclick="clearSearch()">Clear</button>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <p class="sidebar-title">Categories</p>
+    <a href="/all-products"
+       class="cat-link {% if not selected_category %}active{% endif %}">
+      All Products
+    </a>
+    {% for c in categories %}
+      <a href="/all-products?category={{ c[0] }}"
+         class="cat-link {% if selected_category == c[0] %}active{% endif %}">
+        {{ c[0] }}
+      </a>
+    {% endfor %}
+
+    <hr class="divider">
+
+    <p class="sidebar-title">Price Filter</p>
+    <p class="price-label">Max: <span>₹<span id="priceValue">5000</span></span></p>
+    <input type="range" id="priceRange" min="0" max="5000" value="5000"
+           oninput="filterByPrice()">
+  </aside>
+
+  <!-- PRODUCTS AREA -->
+  <main class="products-area">
+    {% if products %}
+      <p class="result-info">Showing <strong>{{ products|length }} products</strong>
+        {% if selected_category %} in <strong>{{ selected_category }}</strong>{% endif %}
+        {% if search %} for <strong>"{{ search }}"</strong>{% endif %}
+      </p>
+
+      <div class="products-grid">
+        {% for p in products %}
+        <div class="product-card" id="product-{{ p[0] }}" data-price="{{ p[2] }}">
+
+          <div class="card-img-wrap">
+            <a href="/product/{{ p[0] }}">
+              <img src="{{ p[4] }}" alt="{{ p[1] }}" loading="lazy">
+            </a>
+          </div>
+
+          <div class="card-body">
+            <a href="/product/{{ p[0] }}" class="card-name">{{ p[1] }}</a>
+            <p class="card-price">{{ p[2] }}</p>
+
+            <a href="/add_to_cart/{{ p[0] }}" class="btn-cart">Add to Cart</a>
+
+            <button class="btn-feedback" onclick="toggleFeedback('{{ p[0] }}')">
+              ★ Give Feedback
+            </button>
+
+            <!-- FEEDBACK FORM -->
+            <div class="feedback-form" id="feedback-{{ p[0] }}">
+              <form action="/add_feedback" method="POST">
+                <input type="hidden" name="product_id" value="{{ p[0] }}">
+                <input type="text" name="user_name" placeholder="Your name" required>
+                <select name="rating">
+                  <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                  <option value="4">⭐⭐⭐⭐ Very Good</option>
+                  <option value="3">⭐⭐⭐ Good</option>
+                  <option value="2">⭐⭐ Fair</option>
+                  <option value="1">⭐ Poor</option>
+                </select>
+                <textarea name="comment" placeholder="Write your review..." required></textarea>
+                <button type="submit" class="btn-submit">Submit Review</button>
+              </form>
+            </div>
+
+            <!-- REVIEWS -->
+            {% set has_review = namespace(val=false) %}
+            {% for f in feedback %}{% if f[0] == p[0] %}{% set has_review.val = true %}{% endif %}{% endfor %}
+
+            {% if has_review.val %}
+            <div class="reviews-wrap">
+              {% for f in feedback %}
+                {% if f[0] == p[0] %}
+                <div class="review-item">
+                  <b>{{ f[1] }}</b>
+                  <span class="review-stars"> ⭐{{ f[2] }}</span><br>
+                  {{ f[3] }}
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>No products found. Try a different search or category.</p>
+      </div>
+    {% endif %}
+  </main>
+
+</div>
+
+<script>
+function searchProduct() {
+  const v = document.getElementById('searchInput').value.trim();
+  if (v) window.location.href = '/all-products?search=' + encodeURIComponent(v);
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchProduct();
+});
+
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  const len = input.value.length;
+  if (!len) { window.location.href = '/all-products'; return; }
+  let i = len;
+  const t = setInterval(() => {
+    input.value = input.value.slice(0, --i);
+    if (i <= 0) { clearInterval(t); window.location.href = '/all-products'; }
+  }, 30);
+}
+
+function filterByPrice() {
+  const val = +document.getElementById('priceRange').value;
+  document.getElementById('priceValue').textContent = val.toLocaleString('en-IN');
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.style.display = parseInt(card.dataset.price) <= val ? '' : 'none';
+  });
+}
+
+function toggleFeedback(id) {
+  const box = document.getElementById('feedback-' + id);
+  box.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

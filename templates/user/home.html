@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>MiniCart — Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy:        #04111F;
+      --navy-2:      #071929;
+      --navy-3:      #0C2240;
+      --navy-4:      #113360;
+      --gold:        #C8A84B;
+      --gold-2:      #DFC070;
+      --gold-3:      #EDD898;
+      --gold-pale:   #F7EDCF;
+      --cream:       #FAF6ED;
+      --cream-2:     #F2EAD5;
+      --cream-3:     #E2D5B8;
+      --text:        #0E0B04;
+      --text-mid:    #5C5035;
+      --text-soft:   #9C8E70;
+      --white:       #FFFFFF;
+      --radius-sm:   8px;
+      --radius-md:   14px;
+      --radius-lg:   22px;
+      --shadow-sm:   0 2px 12px rgba(4,17,31,.08);
+      --shadow-md:   0 8px 32px rgba(4,17,31,.13);
+      --shadow-lg:   0 20px 60px rgba(4,17,31,.2);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      top: 20px; right: 20px;
+      background: var(--navy-3);
+      border: 1px solid rgba(200,168,75,.3);
+      color: var(--gold-3);
+      padding: 13px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      font-weight: 500;
+      z-index: 9999;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      max-width: calc(100vw - 40px);
+      animation: slideDown .3s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .toast::before { content: '✦'; color: var(--gold); font-size: 9px; flex-shrink: 0; }
+    @keyframes slideDown {
+      from { opacity:0; transform:translateY(-16px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: sticky; top: 0; z-index: 500;
+      background: var(--navy);
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      border-bottom: 1px solid rgba(200,168,75,.12);
+    }
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+      opacity: .35;
+    }
+
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold-2);
+      text-decoration: none;
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .nav-logo {
+      width: 36px; height: 36px;
+      background: var(--navy-3);
+      border: 1.5px solid rgba(200,168,75,.35);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 15px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: rgba(250,246,237,.5);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .02em;
+      transition: all .2s;
+      position: relative;
+      white-space: nowrap;
+    }
+    .nav-link .ico { font-size: 15px; }
+    .nav-link:hover { color: var(--gold-2); background: rgba(200,168,75,.07); }
+    .nav-link.active {
+      color: var(--gold-2);
+      background: rgba(200,168,75,.1);
+    }
+    .nav-link.active::after {
+      content: '';
+      position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+      width: 14px; height: 2px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+    .cart-wrap { position: relative; }
+    .cart-dot {
+      position: absolute; top: 7px; right: 11px;
+      width: 7px; height: 7px;
+      background: var(--gold);
+      border: 1.5px solid var(--navy);
+      border-radius: 50%;
+    }
+
+    /* Mobile hamburger */
+    .ham-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px; height: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .ham-btn span {
+      display: block;
+      height: 2px;
+      background: var(--gold-2);
+      border-radius: 2px;
+      transition: all .3s;
+    }
+    .ham-btn span:nth-child(1) { width: 22px; }
+    .ham-btn span:nth-child(2) { width: 16px; }
+    .ham-btn span:nth-child(3) { width: 19px; }
+    .ham-btn:hover span { width: 22px; background: var(--gold-3); }
+
+    /* Mobile nav drawer */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 66px; left: 0; right: 0;
+      background: var(--navy-2);
+      border-bottom: 1px solid rgba(200,168,75,.15);
+      padding: 12px 16px;
+      z-index: 490;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow-md);
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav .nav-link {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+    }
+
+    /* ─── PAGE ─── */
+    .page { max-width: 1260px; margin: 0 auto; padding: 36px 40px 80px; }
+
+    /* ─── WELCOME ROW ─── */
+    .welcome-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .welcome-row h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .welcome-row p { font-size: 13px; color: var(--text-soft); margin-top: 3px; }
+    .date-chip {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      color: var(--text-mid);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: 100px;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+
+    /* ─── HERO BANNER ─── */
+    .banner {
+      background: var(--navy);
+      border-radius: var(--radius-lg);
+      padding: 56px 60px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 40px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Geometric accent lines */
+    .banner::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: 200px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,168,75,.12) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    .banner-stripes {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 42%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .banner-stripes::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        -48deg,
+        rgba(200,168,75,.04) 0px,
+        rgba(200,168,75,.04) 1px,
+        transparent 1px,
+        transparent 28px
+      );
+    }
+    .banner-stripes::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; right: -40px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      border: 1px solid rgba(200,168,75,.1);
+    }
+
+    .banner-content { position: relative; z-index: 2; }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+    .eyebrow-line { width: 22px; height: 1px; background: var(--gold); opacity: .6; }
+
+    .banner-content h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 50px;
+      font-weight: 800;
+      color: var(--cream);
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    .banner-content h1 em {
+      font-style: italic;
+      color: var(--gold-2);
+    }
+    .banner-content p {
+      color: rgba(250,246,237,.48);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-top: 16px;
+      max-width: 380px;
+    }
+    .banner-cta-row { display: flex; align-items: center; gap: 14px; margin-top: 30px; }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .05em;
+      padding: 13px 28px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: all .25s;
+    }
+    .btn-primary:hover {
+      background: var(--gold-2);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(200,168,75,.45);
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(250,246,237,.55);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 13px 4px;
+      border-bottom: 1px solid rgba(250,246,237,.15);
+      transition: all .2s;
+    }
+    .btn-ghost:hover { color: var(--gold-2); border-color: rgba(200,168,75,.5); }
+
+    /* Banner visual */
+    .banner-visual {
+      position: relative; z-index: 2;
+      flex-shrink: 0;
+    }
+    .rings-wrap {
+      position: relative;
+      width: 170px; height: 170px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(200,168,75,.2);
+    }
+    .ring-1 { inset: 0; }
+    .ring-2 { inset: 18px; border-color: rgba(200,168,75,.12); }
+    .ring-3 { inset: 36px; border-color: rgba(200,168,75,.08); }
+    .ring-icon {
+      width: 72px; height: 72px;
+      background: rgba(200,168,75,.1);
+      border: 1px solid rgba(200,168,75,.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      position: relative; z-index: 2;
+      animation: floatIcon 4s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+    /* Orbiting dot */
+    .orbit-dot {
+      position: absolute;
+      top: 14px; left: 50%;
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      transform-origin: 0 71px;
+      animation: orbit 6s linear infinite;
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(0); }
+      to   { transform: rotate(360deg) translateX(0); }
+    }
+
+    /* ─── STATS ROW ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 52px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all .25s;
+    }
+    .stat-card:hover {
+      border-color: rgba(200,168,75,.4);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-3px);
+    }
+    .stat-icon {
+      width: 46px; height: 46px;
+      background: var(--navy);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 23px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1;
+    }
+
+    /* ─── SECTION HEADER ─── */
+    .sec-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .sec-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 27px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -.01em;
+    }
+    .gold-bar {
+      width: 40px; height: 2.5px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-3));
+      border-radius: 2px;
+      margin-top: 7px;
+    }
+    .sec-head p { font-size: 13px; color: var(--text-soft); margin-top: 5px; }
+    .view-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-decoration: none;
+      padding-bottom: 2px;
+      border-bottom: 1px solid transparent;
+      transition: border-color .2s;
+      white-space: nowrap;
+    }
+    .view-all:hover { border-color: var(--gold); }
+
+    /* ─── PRODUCT GRID ─── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+    }
+    .product-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: all .3s cubic-bezier(.34,1.2,.64,1);
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(200,168,75,.3);
+    }
+    .product-img-wrap {
+      position: relative;
+      height: 154px;
+      background: var(--cream-2);
+      overflow: hidden;
+    }
+    .product-img-wrap a { display: block; height: 100%; }
+    .product-thumb {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .45s ease;
+      display: block;
+    }
+    .product-card:hover .product-thumb { transform: scale(1.07); }
+    .product-badge {
+      position: absolute;
+      top: 9px; left: 9px;
+      background: var(--navy);
+      color: var(--gold-2);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+    }
+
+    .product-body {
+      padding: 13px 13px 15px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-name {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.5;
+      text-decoration: none;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+      transition: color .15s;
+    }
+    .product-name:hover { color: var(--navy-4); }
+
+    .product-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 11px;
+      gap: 8px;
+    }
+    .product-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1;
+    }
+    .product-price small {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-soft);
+    }
+    .add-btn {
+      width: 32px; height: 32px;
+      background: var(--navy);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold-2);
+      font-size: 20px;
+      text-decoration: none;
+      flex-shrink: 0;
+      font-weight: 300;
+      transition: all .2s;
+    }
+    .add-btn:hover {
+      background: var(--gold);
+      color: var(--navy);
+      transform: scale(1.12) rotate(90deg);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: var(--navy);
+      margin-top: 72px;
+      padding: 22px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(200,168,75,.1);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: .06em;
+    }
+    .footer p {
+      font-size: 11.5px;
+      color: rgba(250,246,237,.28);
+      letter-spacing: .04em;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--cream); }
+    ::-webkit-scrollbar-thumb { background: var(--cream-3); border-radius: 3px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .banner { padding: 44px 44px; }
+      .banner-content h1 { font-size: 40px; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; height: 60px; }
+      .nav-links { display: none; }
+      .ham-btn { display: flex; }
+      .mobile-nav { top: 60px; }
+
+      .page { padding: 20px 16px 60px; }
+
+      .banner {
+        grid-template-columns: 1fr;
+        padding: 30px 24px 34px;
+        gap: 0;
+      }
+      .banner-visual { display: none; }
+      .banner-content h1 { font-size: 32px; }
+      .banner-content p { font-size: 14px; }
+
+      .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat-card { padding: 16px; gap: 12px; }
+      .stat-value { font-size: 20px; }
+
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .product-img-wrap { height: 130px; }
+
+      .sec-head h2 { font-size: 22px; }
+      .footer { padding: 18px 16px; justify-content: center; text-align: center; }
+    }
+
+    @media (max-width: 380px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .banner-content h1 { font-size: 27px; }
+      .btn-primary { padding: 11px 20px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="toast" id="toast">{{ messages[0] }}</div>
+    <script>
+      setTimeout(() => { const t = document.getElementById('toast'); if(t) t.style.display='none'; }, 2600);
+    </script>
+  {% endif %}
+{% endwith %}
+
+<!-- NAVBAR -->
+<nav>
+  <a href="/user-home" class="nav-brand">
+    <div class="nav-logo">🛒</div>
+    MiniCart
+  </a>
+
+  <div class="nav-links">
+    <a href="/user-home" class="nav-link">
+      <span class="ico">🏠</span> Home
+    </a>
+    <a href="/all-products" class="nav-link active">
+      <span class="ico">🛍️</span> Products
+    </a>
+    <a href="/cart" class="nav-link cart-wrap">
+      <span class="ico">🛒</span> Cart
+      <div class="cart-dot"></div>
+    </a>
+    <a href="/profile" class="nav-link">
+      <span class="ico">👤</span> Profile
+    </a>
+  </div>
+
+  <button class="ham-btn" id="hamBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-nav" id="mobileNav">
+  <a href="/user-home" class="nav-link"><span class="ico">🏠</span> Home</a>
+  <a href="/all-products" class="nav-link active"><span class="ico">🛍️</span> Products</a>
+  <a href="/cart" class="nav-link cart-wrap"><span class="ico">🛒</span> Cart <div class="cart-dot" style="position:relative;top:0;right:0;display:inline-block;margin-left:4px;"></div></a>
+  <a href="/profile" class="nav-link"><span class="ico">👤</span> Profile</a>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- WELCOME -->
+  <div class="welcome-row">
+    <div>
+      <h2>Good day, {{ session.name }} 👋</h2>
+      <p>Here's what's waiting for you today</p>
+    </div>
+    <div class="date-chip">Wednesday, 06 May 2026</div>
+  </div>
+
+  <!-- HERO BANNER -->
+  <div class="banner">
+    <div class="banner-stripes"></div>
+
+    <div class="banner-content">
+      <div class="eyebrow">
+        <span class="eyebrow-line"></span>
+        Curated for you
+      </div>
+      <h1>Welcome to<br><em>MiniCart</em></h1>
+      <p>Shop your favourite products with ease. Fast delivery and the best prices, always guaranteed.</p>
+      <div class="banner-cta-row">
+        <a href="/all-products" class="btn-primary">Browse All &nbsp;→</a>
+        <a href="/cart" class="btn-ghost">View Cart →</a>
+      </div>
+    </div>
+
+    <div class="banner-visual">
+      <div class="rings-wrap">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="orbit-dot"></div>
+        <div class="ring-icon">🛍️</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div>
+        <div class="stat-label">Products</div>
+        <div class="stat-value">1,200+</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🚚</div>
+      <div>
+        <div class="stat-label">Delivery</div>
+        <div class="stat-value">24 hrs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⭐</div>
+      <div>
+        <div class="stat-label">Rating</div>
+        <div class="stat-value">4.9 / 5</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎁</div>
+      <div>
+        <div class="stat-label">Live Offers</div>
+        <div class="stat-value">18 Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCTS -->
+  <div class="sec-head">
+    <div>
+      <h2>Featured Products</h2>
+      <div class="gold-bar"></div>
+      <p>Handpicked selections just for you</p>
+    </div>
+    <a href="/all-products" class="view-all">View All →</a>
+  </div>
+
+  <div class="product-grid">
+    {% for p in products[:5] %}
+    <div class="product-card">
+      <div class="product-img-wrap">
+        <a href="/product/{{ p[0] }}">
+          <img src="{{ p[4] }}" alt="{{ p[1] }}" class="product-thumb" loading="lazy">
+        </a>
+        <div class="product-badge">Featured</div>
+      </div>
+      <div class="product-body">
+        <a href="/product/{{ p[0] }}" class="product-name">{{ p[1] }}</a>
+        <div class="product-bottom">
+          <div class="product-price"><small>₹</small>{{ p[2] }}</div>
+          <a href="/add_to_cart/{{ p[0] }}" class="add-btn" title="Add to cart">+</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-brand">MiniCart</div>
+  <p>© 2026 MiniCart. All rights reserved.</p>
+  <p>Made with ♥ for great shopping</p>
+</div>
+
+<script>
+  // Mobile nav toggle
+  const hamBtn = document.getElementById('hamBtn');
+  const mobileNav = document.getElementById('mobileNav');
+  hamBtn.addEventListener('click', () => {
+    mobileNav.classList.toggle('open');
+  });
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!hamBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+      mobileNav.classList.remove('open');
+    }
+  });
+</script>
+
+</body>
+</html>

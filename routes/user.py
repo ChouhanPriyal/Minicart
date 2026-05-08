@@ -1,0 +1,473 @@
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from extensions import mysql
+import uuid
+
+user_bp = Blueprint("user", __name__)
+
+
+# 🏠 HOME PAGE
+@user_bp.route("/user-home")
+def home():
+
+    if "user_id" not in session or session.get("role") != "user":
+        return redirect("/login")
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT id, name, price, description, image_url
+        FROM products
+        ORDER BY id DESC
+    """)
+
+    products = cur.fetchall()
+
+    cur.close()
+
+    return render_template("user/home.html", products=products)
+
+
+# 🛒 ADD TO CART
+@user_bp.route("/add_to_cart/<int:product_id>")
+def add_to_cart(product_id):
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT *
+        FROM cart
+        WHERE product_id=%s AND user_id=%s
+    """, (product_id, user_id))
+
+    existing = cur.fetchone()
+
+    if existing:
+
+        cur.execute("""
+            UPDATE cart
+            SET quantity = quantity + 1
+            WHERE product_id=%s AND user_id=%s
+        """, (product_id, user_id))
+
+    else:
+
+        cur.execute("""
+            INSERT INTO cart (product_id, quantity, user_id)
+            VALUES (%s, %s, %s)
+        """, (product_id, 1, user_id))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash("Added to Cart 🛒", "success")
+
+    return redirect(url_for("user.cart"))
+
+
+# 🧾 CART PAGE
+@user_bp.route("/cart")
+def cart():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        SELECT
+            p.id,
+            p.name,
+            p.price,
+            p.description,
+            p.image_url,
+            c.quantity
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
+        WHERE c.user_id = %s
+    """, (user_id,))
+
+    cart_items = cur.fetchall()
+
+    total = sum(float(item[2]) * int(item[5]) for item in cart_items)
+
+    cur.close()
+
+    return render_template(
+        "user/cart.html",
+        cart_items=cart_items,
+        total=total
+    )
+
+
+# ❌ REMOVE FROM CART
+@user_bp.route("/remove_from_cart/<int:product_id>")
+def remove_from_cart(product_id):
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        DELETE FROM cart
+        WHERE product_id=%s AND user_id=%s
+    """, (product_id, user_id))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash("Item removed ❌", "success")
+
+    return redirect(url_for("user.cart"))
+
+
+# ➕ INCREASE QUANTITY
+@user_bp.route("/increase/<int:product_id>")
+def increase(product_id):
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        UPDATE cart
+        SET quantity = quantity + 1
+        WHERE product_id=%s AND user_id=%s
+    """, (product_id, user_id))
+
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for("user.cart"))
+
+
+# ➖ DECREASE QUANTITY
+@user_bp.route("/decrease/<int:product_id>")
+def decrease(product_id):
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""
+        UPDATE cart
+        SET quantity = quantity - 1
+        WHERE product_id=%s AND user_id=%s AND quantity > 1
+    """, (product_id, user_id))
+
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for("user.cart"))
+
+
+# 💳 CHECKOUT
+@user_bp.route("/checkout")
+def checkout():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    # ✅ UNIQUE ORDER GROUP
+    order_group = str(uuid.uuid4())
+
+    # ✅ GET CART ITEMS
+    cur.execute("""
+        SELECT
+            c.product_id,
+            c.quantity,
+            p.price,
+            p.merchant_id
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
+        WHERE c.user_id = %s
+    """, (user_id,))
+
+    cart_items = cur.fetchall()
+
+    # ✅ INSERT ALL PRODUCTS
+    for item in cart_items:
+
+        product_id = item[0]
+        quantity = item[1]
+        price = item[2]
+        merchant_id = item[3]
+
+        total_price = float(price) * int(quantity)
+
+        cur.execute("""
+            INSERT INTO orders
+            (
+                product_id,
+                quantity,
+                total_price,
+                user_id,
+                merchant_id,
+                order_group
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            product_id,
+            quantity,
+            total_price,
+            user_id,
+            merchant_id,
+            order_group
+        ))
+
+    # ✅ CLEAR CART
+    cur.execute("""
+        DELETE FROM cart
+        WHERE user_id = %s
+    """, (user_id,))
+
+    mysql.connection.commit()
+    cur.close()
+
+    flash("Order Placed Successfully 🎉", "success")
+
+    return redirect("/order-success")
+
+
+# 👤 PROFILE PAGE
+@user_bp.route("/profile", methods=["GET", "POST"])
+def profile():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    # ✅ USER DETAILS
+    cur.execute("""
+        SELECT
+            name,
+            email,
+            address1,
+            address2,
+            city,
+            pincode
+        FROM users
+        WHERE id = %s
+    """, (user_id,))
+
+    user = cur.fetchone()
+
+    # ✅ USER ORDERS
+    cur.execute("""
+        SELECT
+            o.id,
+            p.name,
+            p.image_url,
+            p.price,
+            o.quantity,
+            o.total_price,
+            o.status
+        FROM orders o
+        JOIN products p ON o.product_id = p.id
+        WHERE o.user_id = %s
+        ORDER BY o.id DESC
+    """, (user_id,))
+
+    orders = cur.fetchall()
+
+    # ✅ UPDATE PROFILE
+    if request.method == "POST":
+
+        name = request.form.get("name")
+        address1 = request.form.get("address1")
+        address2 = request.form.get("address2")
+        city = request.form.get("city")
+        pincode = request.form.get("pincode")
+
+        cur.execute("""
+            UPDATE users
+            SET
+                name=%s,
+                address1=%s,
+                address2=%s,
+                city=%s,
+                pincode=%s
+            WHERE id=%s
+        """, (
+            name,
+            address1,
+            address2,
+            city,
+            pincode,
+            user_id
+        ))
+
+        mysql.connection.commit()
+
+        flash("Profile Updated ✅", "success")
+
+        return redirect(url_for("user.profile"))
+
+    cur.close()
+
+    return render_template(
+        "user/profile.html",
+        user=user,
+        orders=orders
+    )
+
+
+# 🎉 ORDER SUCCESS PAGE
+@user_bp.route("/order-success")
+def order_success():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    cur = mysql.connection.cursor()
+
+    # ✅ USER DETAILS
+    cur.execute("""
+        SELECT
+            name,
+            address1,
+            address2,
+            city,
+            pincode
+        FROM users
+        WHERE id = %s
+    """, (user_id,))
+
+    user = cur.fetchone()
+
+    # ✅ GET LATEST ORDER GROUP
+    cur.execute("""
+        SELECT order_group
+        FROM orders
+        WHERE user_id = %s
+        ORDER BY id DESC
+        LIMIT 1
+    """, (user_id,))
+
+    latest = cur.fetchone()
+
+    if not latest:
+        return redirect("/cart")
+
+    order_group = latest[0]
+
+    # ✅ GET ALL PRODUCTS OF CURRENT ORDER
+    cur.execute("""
+        SELECT
+            o.id,
+            p.name,
+            p.price,
+            p.image_url,
+            o.quantity
+        FROM orders o
+        JOIN products p ON o.product_id = p.id
+        WHERE o.order_group = %s
+    """, (order_group,))
+
+    items = cur.fetchall()
+
+    cur.close()
+
+    return render_template(
+        "user/order_success.html",
+        user=user,
+        order_id=order_group,
+        items=items
+    )
+
+
+# 🛍️ ALL PRODUCTS
+@user_bp.route("/all-products")
+def all_products():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    search = request.args.get("search", "")
+    selected_category = request.args.get("category", "")
+
+    cur = mysql.connection.cursor()
+
+    # ✅ GET CATEGORIES
+    cur.execute("""
+        SELECT DISTINCT category
+        FROM products
+        WHERE category IS NOT NULL
+    """)
+
+    categories = cur.fetchall()
+
+    # ✅ BASE QUERY
+    query = """
+        SELECT
+            id,
+            name,
+            price,
+            description,
+            image_url
+        FROM products
+        WHERE 1=1
+    """
+
+    params = []
+
+    # 🔍 SEARCH FILTER
+    if search:
+        query += " AND name LIKE %s"
+        params.append(f"%{search}%")
+
+    # 🟢 CATEGORY FILTER
+    if selected_category:
+        query += " AND category = %s"
+        params.append(selected_category)
+
+    cur.execute(query, params)
+
+    products = cur.fetchall()
+
+    # ⭐ FEEDBACK
+    cur.execute("""
+        SELECT
+            product_id,
+            user_name,
+            rating,
+            comment
+        FROM feedback
+    """)
+
+    feedback = cur.fetchall()
+
+    cur.close()
+
+    return render_template(
+        "user/all_products.html",
+        products=products,
+        categories=categories,
+        selected_category=selected_category,
+        search=search,
+        feedback=feedback
+    )

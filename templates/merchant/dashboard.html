@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Merchant Dashboard — MiniCart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --navy:        #04111F;
+      --navy-2:      #071929;
+      --navy-3:      #0C2240;
+      --navy-4:      #113360;
+      --navy-5:      #1A4880;
+      --gold:        #C8A84B;
+      --gold-2:      #DFC070;
+      --gold-3:      #EDD898;
+      --gold-pale:   #F7EDCF;
+      --cream:       #FAF6ED;
+      --cream-2:     #F2EAD5;
+      --cream-3:     #E2D5B8;
+      --cream-4:     #CFC0A0;
+      --text:        #0E0B04;
+      --text-mid:    #5C5035;
+      --text-soft:   #9C8E70;
+      --white:       #FFFFFF;
+      --sidebar-w:   258px;
+      --topbar-h:    62px;
+      --r-sm:        8px;
+      --r-md:        14px;
+      --r-lg:        20px;
+      --shadow-sm:   0 2px 10px rgba(4,17,31,.07);
+      --shadow-md:   0 6px 28px rgba(4,17,31,.12);
+      --shadow-lg:   0 18px 56px rgba(4,17,31,.2);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      z-index: 400;
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+    }
+    .sidebar::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        -55deg,
+        rgba(200,168,75,.03) 0px, rgba(200,168,75,.03) 1px,
+        transparent 1px, transparent 26px
+      );
+      pointer-events: none;
+    }
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,168,75,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .sidebar-inner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      height: 100%;
+      padding: 28px 20px 24px;
+    }
+
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 11px;
+      margin-bottom: 36px;
+      text-decoration: none;
+    }
+    .sidebar-logo {
+      width: 38px; height: 38px;
+      background: rgba(200,168,75,.12);
+      border: 1.5px solid rgba(200,168,75,.3);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .brand-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px; font-weight: 800;
+      color: var(--gold-2); letter-spacing: .04em; line-height: 1;
+    }
+    .brand-sub {
+      font-size: 9.5px; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(200,168,75,.5); margin-top: 2px;
+    }
+
+    .nav-label {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(250,246,237,.2);
+      padding: 0 8px; margin-bottom: 8px; margin-top: 20px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; border-radius: var(--r-sm);
+      text-decoration: none;
+      color: rgba(250,246,237,.48);
+      font-size: 13.5px; font-weight: 500;
+      transition: all .2s;
+      position: relative; margin-bottom: 2px;
+    }
+    .nav-icon {
+      width: 30px; height: 30px;
+      background: rgba(250,246,237,.04);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+      transition: background .2s;
+    }
+    .nav-item:hover { color: var(--gold-2); background: rgba(200,168,75,.07); }
+    .nav-item:hover .nav-icon { background: rgba(200,168,75,.12); }
+    .nav-item.active { color: var(--gold-2); background: rgba(200,168,75,.1); }
+    .nav-item.active .nav-icon { background: rgba(200,168,75,.15); }
+    .nav-item.active::before {
+      content: '';
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 22px;
+      background: var(--gold);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid rgba(200,168,75,.1);
+      padding-top: 18px;
+    }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 11px;
+      margin-bottom: 14px;
+    }
+    .user-avatar {
+      width: 38px; height: 38px;
+      background: rgba(200,168,75,.12);
+      border: 1.5px solid rgba(200,168,75,.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: rgba(250,246,237,.75); line-height: 1.3; }
+    .user-role { font-size: 10px; color: rgba(200,168,75,.55); font-weight: 500; letter-spacing: .06em; }
+    .footer-links { display: flex; gap: 10px; }
+    .fl {
+      font-size: 12px; font-weight: 500;
+      text-decoration: none; padding: 7px 14px;
+      border-radius: var(--r-sm); transition: all .2s;
+    }
+    .fl.profile {
+      color: var(--gold-2);
+      background: rgba(200,168,75,.1);
+      border: 1px solid rgba(200,168,75,.2);
+    }
+    .fl.profile:hover { background: rgba(200,168,75,.18); }
+    .fl.logout {
+      color: rgba(250,100,90,.7);
+      background: rgba(250,100,90,.06);
+      border: 1px solid rgba(250,100,90,.15);
+    }
+    .fl.logout:hover { color: rgba(250,100,90,.9); background: rgba(250,100,90,.1); }
+
+    /* TOPBAR */
+    .topbar {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--navy);
+      border-bottom: 1px solid rgba(200,168,75,.12);
+      align-items: center; justify-content: space-between;
+      padding: 0 18px; z-index: 300;
+    }
+    .topbar::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+      opacity: .3;
+    }
+    .topbar-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px; font-weight: 800;
+      color: var(--gold-2); letter-spacing: .04em;
+    }
+    .ham-btn {
+      width: 36px; height: 36px;
+      background: rgba(200,168,75,.1);
+      border: 1px solid rgba(200,168,75,.2);
+      border-radius: var(--r-sm);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 5px; cursor: pointer;
+    }
+    .ham-btn span {
+      display: block; height: 1.5px;
+      background: var(--gold-2); border-radius: 2px;
+    }
+    .ham-btn span:nth-child(1) { width: 18px; }
+    .ham-btn span:nth-child(2) { width: 13px; }
+    .ham-btn span:nth-child(3) { width: 16px; }
+
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(4,17,31,.6); z-index: 390;
+      backdrop-filter: blur(2px);
+    }
+    .overlay.show { display: block; }
+
+    /* MAIN */
+    .main {
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+      padding: 38px 38px 72px;
+    }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 34px; flex-wrap: wrap;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px; font-weight: 700;
+      color: var(--navy); letter-spacing: -.01em;
+    }
+    .page-header p { font-size: 13px; color: var(--text-soft); margin-top: 3px; }
+    .date-chip {
+      background: var(--white); border: 1px solid var(--cream-3);
+      color: var(--text-mid); font-size: 12px; font-weight: 500;
+      padding: 7px 16px; border-radius: 100px; white-space: nowrap;
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--r-lg);
+      padding: 22px 22px 20px;
+      position: relative; overflow: hidden;
+      transition: all .28s cubic-bezier(.34,1.2,.64,1);
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(200,168,75,.3);
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 20px; right: 20px; height: 2px;
+      border-radius: 0 0 3px 3px;
+      background: var(--bar); opacity: .65;
+    }
+    .stat-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .stat-label {
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-soft);
+    }
+    .stat-icon {
+      width: 36px; height: 36px;
+      background: var(--icon-bg);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px; font-weight: 700;
+      color: var(--navy); line-height: 1; letter-spacing: -.02em;
+    }
+    .stat-sub { font-size: 11.5px; color: var(--text-soft); margin-top: 6px; }
+    .stat-sub b { font-weight: 600; color: #3CA87A; }
+
+    /* PANEL */
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 22px 26px 20px;
+      border-bottom: 1px solid var(--cream-2);
+      flex-wrap: wrap;
+    }
+    .panel-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 700; color: var(--navy);
+    }
+    .gold-bar {
+      width: 36px; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-3));
+      border-radius: 2px; margin-top: 5px;
+    }
+    .panel-head p { font-size: 12.5px; color: var(--text-soft); margin-top: 4px; }
+    .legend-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .legend-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 500; color: var(--text-mid);
+      background: var(--cream); border: 1px solid var(--cream-3);
+      padding: 5px 12px; border-radius: 100px;
+    }
+    .ldot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .period-tabs { display: flex; gap: 4px; }
+    .tab-btn {
+      font-size: 11.5px; font-weight: 600;
+      letter-spacing: .04em; color: var(--text-soft);
+      background: none; border: 1px solid var(--cream-3);
+      padding: 5px 12px; border-radius: 6px;
+      cursor: pointer; transition: all .2s;
+    }
+    .tab-btn:hover { color: var(--navy); border-color: var(--cream-4); }
+    .tab-btn.active {
+      background: var(--navy); border-color: var(--navy);
+      color: var(--gold-2);
+    }
+    .panel-body { padding: 24px 26px 26px; }
+    .chart-wrap { position: relative; width: 100%; height: 300px; }
+
+    /* BOTTOM ROW */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px; margin-top: 18px;
+    }
+    .mini-panel {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .mini-head {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--cream-2);
+    }
+    .mini-head h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px; font-weight: 700; color: var(--navy);
+    }
+    .mini-head p { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+
+    /* Quick actions */
+    .quick-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .qa-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: var(--r-sm);
+      text-decoration: none;
+      border: 1px solid var(--cream-3); background: var(--cream);
+      transition: all .2s;
+    }
+    .qa-btn:hover { background: var(--navy); border-color: var(--navy); }
+    .qa-ico {
+      width: 34px; height: 34px;
+      background: var(--white); border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0; transition: background .2s;
+    }
+    .qa-btn:hover .qa-ico { background: rgba(200,168,75,.15); }
+    .qa-txt { font-size: 13px; font-weight: 500; color: var(--text); transition: color .2s; }
+    .qa-btn:hover .qa-txt { color: var(--cream); }
+    .qa-arr { margin-left: auto; color: var(--text-soft); font-size: 15px; transition: color .2s; }
+    .qa-btn:hover .qa-arr { color: var(--gold-2); }
+
+    /* Order list */
+    .order-list { padding: 6px 18px 14px; }
+    .order-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--cream-2);
+    }
+    .order-row:last-child { border-bottom: none; }
+    .order-id { font-size: 11.5px; font-weight: 700; color: var(--navy-4); flex-shrink: 0; }
+    .order-info { flex: 1; min-width: 0; }
+    .order-name { font-size: 12.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .order-time { font-size: 11px; color: var(--text-soft); margin-top: 1px; }
+    .obadge {
+      font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
+      padding: 3px 9px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;
+    }
+    .b-pend { background: rgba(200,140,40,.12); color: #A07010; }
+    .b-ship { background: rgba(30,130,200,.1);  color: #1A6AAA; }
+    .b-done { background: rgba(40,160,100,.1);  color: #1A8050; }
+
+    /* FOOTER */
+    .footer {
+      background: var(--navy); margin-top: 52px;
+      padding: 18px 38px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      border-top: 1px solid rgba(200,168,75,.1);
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--gold); letter-spacing: .06em;
+    }
+    .footer p { font-size: 11px; color: rgba(250,246,237,.25); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .bottom-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .topbar { display: flex; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main {
+        margin-left: 0;
+        padding: 20px 16px 60px;
+        padding-top: calc(var(--topbar-h) + 20px);
+      }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .stat-value { font-size: 26px; }
+      .chart-wrap { height: 230px; }
+      .panel-head, .panel-body { padding: 16px 18px; }
+      .footer { margin-left: 0; padding: 16px; justify-content: center; text-align: center; }
+      .period-tabs { display: none; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { gap: 10px; }
+      .stat-card { padding: 16px 14px 14px; }
+      .stat-value { font-size: 22px; }
+      .stat-icon { width: 30px; height: 30px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="topbar-brand">MiniCart</span>
+  <div class="ham-btn" id="hamBtn">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-inner">
+
+    <a href="/merchant-dashboard" class="sidebar-brand">
+      <div class="sidebar-logo">🛒</div>
+      <div>
+        <div class="brand-text">MiniCart</div>
+        <div class="brand-sub">Merchant Panel</div>
+      </div>
+    </a>
+
+    <div class="nav-label">Main</div>
+    <a href="/merchant-dashboard" class="nav-item active">
+      <div class="nav-icon">🏠</div> Dashboard
+    </a>
+    <a href="/add-product" class="nav-item">
+      <div class="nav-icon">➕</div> Add Product
+    </a>
+    <a href="/products" class="nav-item">
+      <div class="nav-icon">📦</div> View Products
+    </a>
+    <a href="/orders" class="nav-item">
+      <div class="nav-icon">🧾</div> Orders
+    </a>
+
+    <div class="nav-label">Support</div>
+    <a href="/merchant-feedback" class="nav-item">
+      <div class="nav-icon">💬</div> Feedback
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">👤</div>
+        <div>
+          <div class="user-name">{{ session.user_name }}</div>
+          <div class="user-role">Merchant</div>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="/merchant/profile" class="fl profile">Profile</a>
+        <a href="/logout" class="fl logout">Logout</a>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <div>
+      <h1>Welcome back, {{ session.user_name }} 👋</h1>
+      <p>Here's your business overview for today</p>
+    </div>
+    <div class="date-chip" id="dateChip">—</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card" style="--bar: var(--gold); --icon-bg: rgba(200,168,75,.1);">
+      <div class="stat-top">
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-icon">🧾</div>
+      </div>
+      <div class="stat-value">{{ total_orders or 0 }}</div>
+      <div class="stat-sub"><b>+12%</b> vs last month</div>
+    </div>
+
+    <div class="stat-card" style="--bar: #E8A030; --icon-bg: rgba(232,160,48,.1);">
+      <div class="stat-top">
+        <div class="stat-label">Pending Orders</div>
+        <div class="stat-icon">⏳</div>
+      </div>
+      <div class="stat-value">{{ pending_orders or 0 }}</div>
+      <div class="stat-sub">Needs your attention</div>
+    </div>
+
+    <div class="stat-card" style="--bar: #3CA87A; --icon-bg: rgba(60,168,122,.1);">
+      <div class="stat-top">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-value">{{ total_products or 0 }}</div>
+      <div class="stat-sub"><b>+3</b> added this week</div>
+    </div>
+
+    <div class="stat-card" style="--bar: #4A90D9; --icon-bg: rgba(74,144,217,.1);">
+      <div class="stat-top">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-icon">💰</div>
+      </div>
+      <div class="stat-value" style="font-size:26px;">₹{{ revenue or 0 }}</div>
+      <div class="stat-sub"><b>+18%</b> vs last month</div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Profit &amp; Loss Overview</h2>
+        <div class="gold-bar"></div>
+        <p>Monthly performance at a glance</p>
+      </div>
+      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+        <div class="legend-pills">
+          <div class="legend-pill"><div class="ldot" style="background:#C8A84B;"></div> Profit</div>
+          <div class="legend-pill"><div class="ldot" style="background:#4A90D9;"></div> Loss</div>
+        </div>
+        <div class="period-tabs">
+          <button class="tab-btn active">6M</button>
+          <button class="tab-btn">1Y</button>
+          <button class="tab-btn">All</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="bottom-row">
+
+    <div class="mini-panel">
+      <div class="mini-head">
+        <h3>Quick Actions</h3>
+        <p>Manage your store efficiently</p>
+      </div>
+      <div class="quick-list">
+        <a href="/add-product" class="qa-btn">
+          <div class="qa-ico">➕</div>
+          <span class="qa-txt">Add New Product</span>
+          <span class="qa-arr">›</span>
+        </a>
+        <a href="/orders" class="qa-btn">
+          <div class="qa-ico">🧾</div>
+          <span class="qa-txt">Manage Orders</span>
+          <span class="qa-arr">›</span>
+        </a>
+        <a href="/products" class="qa-btn">
+          <div class="qa-ico">📦</div>
+          <span class="qa-txt">View Inventory</span>
+          <span class="qa-arr">›</span>
+        </a>
+        <a href="/merchant-feedback" class="qa-btn">
+          <div class="qa-ico">💬</div>
+          <span class="qa-txt">Check Feedback</span>
+          <span class="qa-arr">›</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="mini-panel">
+      <div class="mini-head">
+        <h3>Recent Orders</h3>
+        <p>Latest activity on your store</p>
+      </div>
+      <div class="order-list">
+        <div class="order-row">
+          <div class="order-id">#4821</div>
+          <div class="order-info">
+            <div class="order-name">Wireless Headphones</div>
+            <div class="order-time">2 hours ago</div>
+          </div>
+          <div class="obadge b-pend">Pending</div>
+        </div>
+        <div class="order-row">
+          <div class="order-id">#4820</div>
+          <div class="order-info">
+            <div class="order-name">Cotton Kurta Set</div>
+            <div class="order-time">5 hours ago</div>
+          </div>
+          <div class="obadge b-ship">Shipped</div>
+        </div>
+        <div class="order-row">
+          <div class="order-id">#4818</div>
+          <div class="order-info">
+            <div class="order-name">Steel Water Bottle</div>
+            <div class="order-time">Yesterday</div>
+          </div>
+          <div class="obadge b-done">Delivered</div>
+        </div>
+        <div class="order-row">
+          <div class="order-id">#4815</div>
+          <div class="order-info">
+            <div class="order-name">Running Shoes</div>
+            <div class="order-time">2 days ago</div>
+          </div>
+          <div class="obadge b-done">Delivered</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-brand">MiniCart</div>
+  <p>© 2026 MiniCart Merchant Portal. All rights reserved.</p>
+  <p>Made with ♥ for great commerce</p>
+</footer>
+
+<script>
+  // Date
+  const d = new Date();
+  document.getElementById('dateChip').textContent =
+    d.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // Sidebar toggle
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  document.getElementById('hamBtn').addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+  });
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+
+  // Period tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Chart
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const profitGrad = ctx.createLinearGradient(0, 0, 0, 300);
+  profitGrad.addColorStop(0, 'rgba(200,168,75,.22)');
+  profitGrad.addColorStop(1, 'rgba(200,168,75,0)');
+  const lossGrad = ctx.createLinearGradient(0, 0, 0, 300);
+  lossGrad.addColorStop(0, 'rgba(74,144,217,.18)');
+  lossGrad.addColorStop(1, 'rgba(74,144,217,0)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [
+        {
+          label: 'Profit',
+          data: [5000, 7000, 6200, 9400, 12000, 15000],
+          borderColor: '#C8A84B', borderWidth: 2.5,
+          pointBackgroundColor: '#C8A84B', pointBorderColor: '#fff',
+          pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7,
+          tension: 0.4, fill: true, backgroundColor: profitGrad,
+        },
+        {
+          label: 'Loss',
+          data: [2000, 3000, 2500, 2000, 1500, 1000],
+          borderColor: '#4A90D9', borderWidth: 2.5,
+          pointBackgroundColor: '#4A90D9', pointBorderColor: '#fff',
+          pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7,
+          tension: 0.4, fill: true, backgroundColor: lossGrad,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#071929', titleColor: '#DFC070',
+          bodyColor: 'rgba(250,246,237,.7)',
+          borderColor: 'rgba(200,168,75,.2)', borderWidth: 1,
+          padding: 12, cornerRadius: 10,
+          titleFont: { family: "'Outfit', sans-serif", weight: '600', size: 13 },
+          bodyFont:  { family: "'Outfit', sans-serif", size: 12 },
+          callbacks: { label: c => ' ₹' + c.parsed.y.toLocaleString() }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(226,213,184,.4)', drawTicks: false },
+          border: { display: false },
+          ticks: { color: '#9C8E70', font: { family: "'Outfit', sans-serif", size: 12, weight: '500' }, padding: 8 }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(226,213,184,.4)', drawTicks: false },
+          border: { display: false },
+          ticks: {
+            color: '#9C8E70', font: { family: "'Outfit', sans-serif", size: 12 }, padding: 10,
+            callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v)
+          }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

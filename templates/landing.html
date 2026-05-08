@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiniCart — Shop Smart. Sell Better.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy:        #091830;
+      --navy-mid:    #112549;
+      --navy-light:  #1A3566;
+      --gold:        #C9A84C;
+      --gold-light:  #E2C97E;
+      --gold-pale:   #F5E8C0;
+      --cream:       #FAF5EB;
+      --cream-mid:   #F0E8D5;
+      --cream-dark:  #DDD0B3;
+      --text-dark:   #100D04;
+      --text-muted:  #7A6B4E;
+      --white:       #FFFFFF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      background: rgba(9, 24, 48, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 60px;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+    }
+
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+      opacity: 0.5;
+    }
+
+    .nav-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gold-light);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-brand-mark {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(201,168,76,0.5);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      color: rgba(250,245,235,0.65);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover { color: var(--gold-light); background: rgba(201,168,76,0.08); }
+
+    .nav-cta {
+      margin-left: 8px;
+      background: transparent;
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 9px 22px;
+      border-radius: 6px;
+      transition: all 0.25s;
+    }
+
+    .nav-cta:hover {
+      background: var(--gold);
+      color: var(--navy);
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 140px 60px 80px;
+    }
+
+    /* Grid pattern */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Radial glow top right */
+    .hero-glow-tr {
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Radial glow bottom left */
+    .hero-glow-bl {
+      position: absolute;
+      bottom: -120px; left: -80px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(26,53,102,0.9) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .hero-left { animation: fadeUp 0.8s ease both; }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+    }
+
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 24px; height: 1px;
+      background: var(--gold);
+      opacity: 0.6;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 5.5vw, 72px);
+      font-weight: 700;
+      color: var(--cream);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      line-height: 1.75;
+      color: rgba(250,245,235,0.6);
+      max-width: 420px;
+      margin-bottom: 44px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      padding: 16px 34px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(201,168,76,0.4);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: 1.5px solid rgba(250,245,235,0.25);
+      color: rgba(250,245,235,0.8);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 16px 34px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: rgba(201,168,76,0.06);
+    }
+
+    /* Trust badges */
+    .hero-trust {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(201,168,76,0.12);
+    }
+
+    .trust-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .trust-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+
+    .trust-label {
+      font-size: 11px;
+      color: rgba(250,245,235,0.45);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .trust-sep {
+      width: 1px;
+      height: 36px;
+      background: rgba(201,168,76,0.2);
+    }
+
+    /* HERO RIGHT — visual panel */
+    .hero-right {
+      animation: fadeUp 0.8s 0.2s ease both;
+      position: relative;
+    }
+
+    .hero-card-stack {
+      position: relative;
+      height: 460px;
+    }
+
+    .hcard {
+      position: absolute;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      padding: 28px;
+      transition: all 0.3s;
+    }
+
+    .hcard-back {
+      top: 30px; left: 30px; right: -20px; bottom: 0;
+      background: rgba(201,168,76,0.04);
+      transform: rotate(3deg);
+    }
+
+    .hcard-main {
+      top: 0; left: 0; right: 20px; bottom: 30px;
+      background: rgba(17, 37, 73, 0.7);
+      z-index: 2;
+    }
+
+    .hcard-main:hover { transform: translateY(-4px); }
+
+    .hcard-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 12px;
+      background: var(--navy-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      overflow: hidden;
+    }
+
+    .hcard-label {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 20px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .hcard-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 16px;
+    }
+
+    .hcard-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hcard-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+
+    .hcard-btn {
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 10px 20px;
+      border-radius: 7px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .hcard-btn:hover { background: var(--gold-light); }
+
+    /* floating chip */
+    .hcard-chip {
+      position: absolute;
+      top: -16px; right: 40px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 6px 14px;
+      border-radius: 100px;
+      z-index: 10;
+      box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+    }
+
+    /* ─── SECTION BASE ─── */
+    .section { padding: 100px 60px; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+
+    .section-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-tag::after {
+      content: '';
+      display: block;
+      flex: 1;
+      max-width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 3.5vw, 52px);
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .gold-rule {
+      width: 56px; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      margin: 18px 0 20px;
+    }
+
+    /* ─── FEATURES ─── */
+    .features-section { background: var(--cream); }
+
+    .features-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 64px;
+    }
+
+    .features-header .section-tag { justify-content: center; }
+    .features-header .section-tag::after { display: none; }
+    .features-header .gold-rule { margin: 18px auto 20px; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid var(--cream-dark);
+      border-radius: 18px;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+
+    .feature-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(9,24,48,0.1); }
+    .feature-card:hover::before { transform: scaleX(1); }
+
+    .feature-icon {
+      width: 58px; height: 58px;
+      background: var(--navy);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 12px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-muted);
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .how-section {
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .how-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+
+    .how-left .section-title { color: var(--cream); }
+
+    .how-left p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: rgba(250,245,235,0.55);
+      margin-bottom: 36px;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 28px; }
+
+    .step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(201,168,76,0.35);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-content h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 13px;
+      line-height: 1.65;
+      color: rgba(250,245,235,0.45);
+      margin: 0;
+    }
+
+    .how-right {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .how-stat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: all 0.25s;
+    }
+
+    .how-stat:hover { background: rgba(201,168,76,0.06); border-color: rgba(201,168,76,0.25); }
+
+    .how-stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .how-stat-label {
+      font-size: 12px;
+      color: rgba(250,245,235,0.45);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.5;
+    }
+
+    .how-stat.accent { background: rgba(201,168,76,0.08); border-color: rgba(201,168,76,0.3); }
+
+    /* ─── CTA SECTION ─── */
+    .cta-section { background: var(--cream-mid); }
+
+    .cta-box {
+      background: var(--navy);
+      border-radius: 24px;
+      padding: 80px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 300px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.15) 0%, transparent 70%);
+    }
+
+    .cta-box .section-tag { justify-content: center; margin-bottom: 20px; }
+    .cta-box .section-tag::after { display: none; }
+    .cta-box .section-title { color: var(--cream); margin-bottom: 18px; }
+
+    .cta-box p {
+      font-size: 16px;
+      color: rgba(250,245,235,0.55);
+      line-height: 1.7;
+      max-width: 460px;
+      margin: 0 auto 44px;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #060F1F;
+      border-top: 1px solid rgba(201,168,76,0.12);
+    }
+
+    .footer-top {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 72px 60px 56px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 60px;
+    }
+
+    .footer-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .footer-brand-mark {
+      width: 34px; height: 34px;
+      border: 1.5px solid rgba(201,168,76,0.4);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+    }
+
+    .footer-about {
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(250,245,235,0.35);
+      max-width: 260px;
+      margin-bottom: 28px;
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 10px;
+    }
+
+    .social-btn {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      color: rgba(250,245,235,0.45);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .social-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.06);
+    }
+
+    .footer-col h4 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: rgba(250,245,235,0.4);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--gold-light); }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(201,168,76,0.08);
+      padding: 24px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-bottom p {
+      font-size: 12px;
+      color: rgba(250,245,235,0.25);
+      letter-spacing: 0.03em;
+    }
+
+    .footer-bottom-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-bottom-links a {
+      font-size: 12px;
+      color: rgba(250,245,235,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-bottom-links a:hover { color: var(--gold); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 3px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 60px; }
+      .hero-right { display: none; }
+      .how-inner { grid-template-columns: 1fr; gap: 56px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .section { padding: 72px 24px; }
+      .hero { padding: 120px 24px 72px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .how-right { grid-template-columns: 1fr 1fr; }
+      .cta-box { padding: 48px 28px; }
+      .footer-top { grid-template-columns: 1fr; padding: 48px 24px 40px; }
+      .footer-bottom { flex-direction: column; gap: 12px; text-align: center; padding: 20px 24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ─── NAVBAR ─── -->
+<nav>
+  <a href="/" class="nav-brand">
+    <div class="nav-brand-mark">🛒</div>
+    MiniCart
+  </a>
+
+  <div class="nav-links">
+    <a href="/login" class="nav-cta">Sign In</a>
+  </div>
+</nav>
+
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-glow-tr"></div>
+  <div class="hero-glow-bl"></div>
+
+  <div class="hero-inner">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+
+      <div class="hero-eyebrow">Your Commerce Platform</div>
+
+      <h1 class="hero-title">
+        Shop <em>Smart.</em><br>
+        Sell Better.
+      </h1>
+
+      <p class="hero-sub">
+        A unified platform for buyers and merchants alike.
+        Discover curated products or launch your store — all in one elegant experience.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/register" class="btn-primary">
+          Start Shopping &nbsp;→
+        </a>
+      </div>
+
+      <div class="hero-trust">
+        <div class="trust-item">
+          <div class="trust-num">12K+</div>
+          <div class="trust-label">Products</div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-num">3.4K</div>
+          <div class="trust-label">Merchants</div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-num">98%</div>
+          <div class="trust-label">Satisfaction</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT — visual card -->
+    <div class="hero-right">
+      <div class="hero-card-stack">
+        <div class="hcard hcard-back"></div>
+
+        <div class="hcard hcard-main">
+          <div class="hcard-chip">✦ Featured</div>
+
+          <div class="hcard-img">
+            <img
+              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80"
+              alt="Product"
+              style="width:100%;height:100%;object-fit:cover;border-radius:12px;"
+              onerror="this.parentElement.innerHTML='🛍️'"
+            >
+          </div>
+
+          <div class="hcard-label">Trending Now</div>
+          <div class="hcard-title">Premium Collection 2026</div>
+
+          <div class="hcard-footer">
+            <div class="hcard-price">₹2,499</div>
+            <a href="/home" class="hcard-btn">Shop Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ─── FEATURES ─── -->
+<section class="section features-section">
+  <div class="section-inner">
+
+    <div class="features-header">
+      <div class="section-tag">Why MiniCart</div>
+      <h2 class="section-title">Everything you need,<br>nothing you don't</h2>
+      <div class="gold-rule"></div>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">Fast Shopping</h3>
+        <p class="feature-text">
+          Browse thousands of curated products with a clean, intuitive interface.
+          Find what you need in seconds, not minutes.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🏪</div>
+        <h3 class="feature-title">Easy Selling</h3>
+        <p class="feature-text">
+          Launch your store in minutes. Add products, manage inventory, and track
+          orders — all from your merchant dashboard.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3 class="feature-title">Secure & Reliable</h3>
+        <p class="feature-text">
+          Enterprise-grade security for every transaction.
+          Your data and payments are protected at every step of the journey.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="section how-section">
+  <div class="section-inner">
+    <div class="how-inner">
+
+      <div class="how-left">
+        <div class="section-tag">How It Works</div>
+        <h2 class="section-title" style="color:var(--cream);">Up and running<br>in three steps</h2>
+        <div class="gold-rule"></div>
+        <p>Whether you're here to shop or to sell, getting started takes less than a minute.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <h4>Create your account</h4>
+              <p>Register as a shopper or merchant — it's free and instant.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <h4>Browse or list products</h4>
+              <p>Shop from thousands of listings or add your own products to the marketplace.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <h4>Buy or earn with confidence</h4>
+              <p>Secure checkout for buyers, real-time sales tracking for merchants.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="how-right">
+        <div class="how-stat accent">
+          <div class="how-stat-num">12K+</div>
+          <div class="how-stat-label">Active Products Listed</div>
+        </div>
+        <div class="how-stat">
+          <div class="how-stat-num">3.4K</div>
+          <div class="how-stat-label">Verified Merchants</div>
+        </div>
+        <div class="how-stat">
+          <div class="how-stat-num">98%</div>
+          <div class="how-stat-label">Customer Satisfaction</div>
+        </div>
+        <div class="how-stat accent">
+          <div class="how-stat-num">24 hr</div>
+          <div class="how-stat-label">Average Delivery Time</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── CTA ─── -->
+<section class="section cta-section">
+  <div class="section-inner">
+    <div class="cta-box">
+      <div class="section-tag">Get Started Today</div>
+      <h2 class="section-title">Ready to experience<br><em style="font-style:italic;color:var(--gold-light);">smarter commerce?</em></h2>
+      <p>Join thousands of shoppers and merchants who have already made the switch. Your store or cart is one click away.</p>
+      <div class="cta-actions">
+        <a href="/register" class="btn-primary">Create Free Account</a>
+        <a href="/login" class="btn-outline">Sign In</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-top">
+
+    <!-- BRAND COL -->
+    <div>
+      <a href="/" class="footer-brand">
+        <div class="footer-brand-mark">🛒</div>
+        MiniCart
+      </a>
+      <p class="footer-about">
+        A modern commerce platform connecting buyers and merchants through a seamless, beautiful experience.
+      </p>
+      <div class="footer-social">
+        <a href="#" class="social-btn">𝕏</a>
+        <a href="#" class="social-btn">in</a>
+        <a href="#" class="social-btn">f</a>
+        <a href="#" class="social-btn">ig</a>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="footer-col">
+      <h4>Shop</h4>
+      <ul class="footer-links">
+        <li><a href="/home">All Products</a></li>
+        <li><a href="#">New Arrivals</a></li>
+        <li><a href="#">Best Sellers</a></li>
+        <li><a href="#">Offers & Deals</a></li>
+        <li><a href="/cart">My Cart</a></li>
+      </ul>
+    </div>
+
+    <!-- SELL -->
+    <div class="footer-col">
+      <h4>Sell</h4>
+      <ul class="footer-links">
+        <li><a href="/merchant/dashboard">Merchant Dashboard</a></li>
+        <li><a href="#">Add Products</a></li>
+        <li><a href="#">Manage Orders</a></li>
+        <li><a href="#">Analytics</a></li>
+        <li><a href="#">Seller Guide</a></li>
+      </ul>
+    </div>
+
+    <!-- COMPANY -->
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul class="footer-links">
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Support</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 MiniCart. All rights reserved.</p>
+    <div class="footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Policy</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

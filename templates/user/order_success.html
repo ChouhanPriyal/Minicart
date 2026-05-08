@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
+
+    /* NAVBAR */
+    .oc-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .oc-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .oc-nav-label {
+      font-size: 12px;
+      color: #7a9ab8;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* POPUP (FLASH MESSAGE) */
+    .oc-popup {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #fffdf8;
+      border: 1px solid rgba(201, 168, 76, 0.53);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #8a6e1a;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(201, 168, 76, 0.13);
+    }
+    .oc-popup i { font-size: 18px; color: #4a9a6c; }
+
+    /* LAYOUT */
+    .oc-container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    /* SUCCESS BANNER */
+    .oc-success-banner {
+      background: #0a1520;
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .oc-check {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(201, 168, 76, 0.15);
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .oc-check i { font-size: 26px; color: #c9a84c; }
+    .oc-confirmed {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #f0d98c;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .oc-confirmed-sub {
+      font-size: 12px;
+      color: #7a9ab8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* CARD */
+    .oc-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.33);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 16px rgba(201, 168, 76, 0.06);
+      margin-bottom: 16px;
+    }
+
+    /* SECTION LABEL */
+    .oc-section-label {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #7a6e5f;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .oc-section-label i { font-size: 15px; color: #a8882c; }
+
+    /* INFO ROWS */
+    .oc-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid #ede5cc;
+      font-size: 14px;
+    }
+    .oc-info-row:last-child { border-bottom: none; }
+    .oc-info-key { color: #8a7a66; }
+    .oc-info-val { font-weight: 500; color: #1a2b3c; text-align: right; max-width: 60%; }
+    .oc-status-pill {
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 12px;
+      color: #8a6e1a;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* ORDER ITEMS */
+    .oc-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #ede5cc;
+    }
+    .oc-item:last-of-type { border-bottom: none; }
+
+    .oc-thumb {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      flex-shrink: 0;
+    }
+    .oc-thumb-placeholder {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .oc-thumb-placeholder i { font-size: 22px; color: #a8882c; }
+
+    .oc-item-info { flex: 1; }
+    .oc-item-name { font-size: 14px; font-weight: 500; color: #1a2b3c; margin-bottom: 4px; }
+    .oc-item-meta { font-size: 12px; color: #8a7a66; }
+
+    .oc-item-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #8a6e1a;
+    }
+
+    /* TOTAL */
+    .oc-divider { border: none; border-top: 1px solid #ddd4b8; margin: 4px 0; }
+    .oc-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0 4px;
+    }
+    .oc-total-label { font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: #7a6e5f; }
+    .oc-total-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #a8882c;
+    }
+
+    /* BUTTON */
+    .oc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      border: none;
+      border-radius: 10px;
+      color: #f0d98c;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .oc-btn:hover { opacity: 0.88; }
+    .oc-btn:active { transform: scale(0.99); }
+    .oc-btn i { font-size: 18px; }
+
+    /* TRUST BADGES */
+    .oc-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    .oc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.27);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: #7a6040;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .oc-badge i { font-size: 14px; color: #4a9a6c; }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+      .oc-confirmed { font-size: 22px; }
+      .oc-total-amount { font-size: 28px; }
+      .oc-container { padding: 16px 12px 32px; }
+      .oc-card { padding: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- POPUP (FLASH MESSAGE) -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="oc-popup" id="popup">
+        <i class="ti ti-circle-check"></i>
+        {{ messages[0] }}
+      </div>
+      <script>
+        setTimeout(() => {
+          document.getElementById("popup").style.display = "none";
+        }, 2500);
+      </script>
+    {% endif %}
+  {% endwith %}
+
+  <!-- NAVBAR -->
+  <nav class="oc-nav">
+    <span class="oc-brand">Minicart</span>
+    <span class="oc-nav-label">Order Receipt</span>
+  </nav>
+
+  <div class="oc-container">
+
+    <!-- SUCCESS BANNER -->
+    <div class="oc-success-banner">
+      <div class="oc-check">
+        <i class="ti ti-check"></i>
+      </div>
+      <div class="oc-confirmed">Order Confirmed!</div>
+      <div class="oc-confirmed-sub">Thank you for your purchase</div>
+    </div>
+
+    <!-- ORDER INFO -->
+    <div class="oc-card">
+      <div class="oc-section-label">
+        <i class="ti ti-receipt"></i> Order Info
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Order ID</span>
+        <span class="oc-info-val">#{{ order_id }}</span>
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Status</span>
+        <span class="oc-status-pill">✦ Confirmed</span>
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Payment</span>
+        <span class="oc-info-val">Cash on Delivery</span>
+      </div>
+    </div>
+
+    <!-- DELIVERY DETAILS -->
+    <div class="oc-card">
+      <div class="oc-section-label">
+        <i class="ti ti-map-pin"></i> Delivery Details
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Name</span>
+        <span class="oc-info-val">{{ user[0] }}</span>
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Address</span>
+        <span class="oc-info-val">{{ user[1] }} {{ user[2] }}, {{ user[3] }}</span>
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">Pincode</span>
+        <span class="oc-info-val">{{ user[4] }}</span>
+      </div>
+      <div class="oc-info-row">
+        <span class="oc-info-key">State</span>
+        <span class="oc-info-val">Chhattisgarh</span>
+      </div>
+    </div>
+
+    <!-- ORDERED ITEMS -->
+    <div class="oc-card">
+      <div class="oc-section-label">
+        <i class="ti ti-shopping-bag"></i> Ordered Items
+      </div>
+
+      {% set total = 0 %}
+
+      {% for item in items %}
+      <div class="oc-item">
+
+        {% if item[3] %}
+          <img src="{{ item[3] }}" class="oc-thumb" alt="{{ item[1] }}">
+        {% else %}
+          <div class="oc-thumb-placeholder">
+            <i class="ti ti-shopping-bag"></i>
+          </div>
+        {% endif %}
+
+        <div class="oc-item-info">
+          <div class="oc-item-name">{{ item[1] }}</div>
+          <div class="oc-item-meta">Qty: {{ item[4] }} &nbsp;·&nbsp; ₹{{ item[2] }} each</div>
+        </div>
+
+        <div class="oc-item-price">₹{{ item[2] * item[4] }}</div>
+      </div>
+      {% set total = total + (item[2] * item[4]) %}
+      {% endfor %}
+
+      <!-- TOTAL -->
+      <hr class="oc-divider">
+      <div class="oc-total-row">
+        <span class="oc-total-label">Total Paid</span>
+        <span class="oc-total-amount">₹{{ total }}</span>
+      </div>
+
+      <!-- BUTTON -->
+      <a href="/user-home" class="oc-btn">
+        <i class="ti ti-shopping-cart"></i>
+        Continue Shopping
+      </a>
+    </div>
+
+    <!-- TRUST BADGES -->
+    <div class="oc-badges">
+      <span class="oc-badge"><i class="ti ti-truck"></i> Dispatched in 24h</span>
+      <span class="oc-badge"><i class="ti ti-headset"></i> 24/7 support</span>
+      <span class="oc-badge"><i class="ti ti-refresh"></i> Easy returns</span>
+    </div>
+
+  </div>
+
+</body>
+</html>

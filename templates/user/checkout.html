@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
+
+    /* NAVBAR */
+    .ck-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ck-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ck-back {
+      color: #a09070;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .ck-back:hover { color: #c9a84c; }
+
+    /* POPUP */
+    .ck-popup {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #fffdf8;
+      border: 1px solid rgba(201, 168, 76, 0.53);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #8a6e1a;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(201, 168, 76, 0.13);
+    }
+    .ck-popup i { font-size: 18px; color: #4a9a6c; }
+
+    /* LAYOUT */
+    .ck-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+    .ck-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #0a1520;
+      margin-bottom: 6px;
+    }
+    .ck-subheading {
+      font-size: 12px;
+      color: #7a6e5f;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    /* CARD */
+    .ck-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.33);
+      border-radius: 16px;
+      padding: 8px 20px;
+      box-shadow: 0 2px 16px rgba(201, 168, 76, 0.06);
+    }
+
+    /* ITEMS */
+    .ck-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid #ede5cc;
+    }
+    .ck-item:last-of-type { border-bottom: none; }
+
+    .ck-item-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.27);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ck-item-icon i { font-size: 18px; color: #a8882c; }
+
+    .ck-item-info { flex: 1; }
+    .ck-item-name { font-size: 14px; font-weight: 500; color: #1a2b3c; margin-bottom: 3px; }
+    .ck-item-qty { font-size: 12px; color: #8a7a66; letter-spacing: 0.5px; }
+
+    .ck-item-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #8a6e1a;
+    }
+
+    /* TOTAL */
+    .ck-divider { border: none; border-top: 1px solid #ddd4b8; margin: 4px 0; }
+    .ck-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0 4px;
+    }
+    .ck-total-label {
+      font-size: 12px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #7a6e5f;
+    }
+    .ck-total-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #a8882c;
+    }
+
+    /* BUTTON */
+    .ck-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      border: none;
+      border-radius: 10px;
+      color: #f0d98c;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: opacity 0.2s, transform 0.1s;
+      text-decoration: none;
+      margin-bottom: 8px;
+    }
+    .ck-btn:hover { opacity: 0.88; }
+    .ck-btn:active { transform: scale(0.99); }
+    .ck-btn i { font-size: 18px; }
+
+    /* BADGES */
+    .ck-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 20px 0 0;
+      justify-content: center;
+    }
+    .ck-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.27);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: #7a6040;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .ck-badge i { font-size: 14px; color: #4a9a6c; }
+
+    /* EMPTY STATE */
+    .ck-empty { text-align: center; padding: 48px 20px; color: #8a7a66; font-size: 15px; }
+    .ck-empty i { font-size: 48px; color: #d4c9aa; display: block; margin-bottom: 14px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+      .ck-heading { font-size: 24px; }
+      .ck-total-amount { font-size: 28px; }
+      .ck-container { padding: 16px 12px 32px; }
+      .ck-card { padding: 6px 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- POPUP (FLASH MESSAGE) -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="ck-popup" id="popup">
+        <i class="ti ti-circle-check"></i>
+        {{ messages[0] }}
+      </div>
+      <script>
+        setTimeout(() => {
+          document.getElementById("popup").style.display = "none";
+        }, 2500);
+      </script>
+    {% endif %}
+  {% endwith %}
+
+  <!-- NAVBAR -->
+  <nav class="ck-nav">
+    <span class="ck-brand">CHECKOUT</span>
+    <a href="/cart" class="ck-back">
+      <i class="ti ti-arrow-left"></i> Back to Cart
+    </a>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="ck-container">
+
+    <h1 class="ck-heading">Order Summary</h1>
+    <p class="ck-subheading">Review your items before confirming</p>
+
+    {% if cart_items %}
+
+      <div class="ck-card">
+
+        <!-- ITEMS -->
+        {% for item in cart_items %}
+        <div class="ck-item">
+          <div class="ck-item-icon">
+            <i class="ti ti-shopping-bag"></i>
+          </div>
+          <div class="ck-item-info">
+            <div class="ck-item-name">{{ item[1] }}</div>
+            <div class="ck-item-qty">Qty: {{ item[5] }}</div>
+          </div>
+          <div class="ck-item-price">₹{{ item[2] * item[5] }}</div>
+        </div>
+        {% endfor %}
+
+        <!-- TOTAL -->
+        <hr class="ck-divider">
+        <div class="ck-total-row">
+          <span class="ck-total-label">Total Payable</span>
+          <span class="ck-total-amount">₹{{ total }}</span>
+        </div>
+
+        <!-- CONFIRM BUTTON -->
+        <a href="/place-order" class="ck-btn">
+          <i class="ti ti-lock"></i>
+          Confirm Order
+        </a>
+
+      </div>
+
+      <!-- TRUST BADGES -->
+      <div class="ck-badges">
+        <span class="ck-badge"><i class="ti ti-shield-check"></i> Secure checkout</span>
+        <span class="ck-badge"><i class="ti ti-truck"></i> Free delivery</span>
+        <span class="ck-badge"><i class="ti ti-refresh"></i> Easy returns</span>
+      </div>
+
+    {% else %}
+
+      <div class="ck-card">
+        <div class="ck-empty">
+          <i class="ti ti-shopping-cart-off"></i>
+          No items in cart
+        </div>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+</body>
+</html>

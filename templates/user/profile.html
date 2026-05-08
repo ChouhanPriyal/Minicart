@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
+
+    /* NAVBAR */
+    .pr-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pr-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .pr-nav-right { display: flex; align-items: center; gap: 16px; }
+    .pr-nav-link {
+      color: #a09070;
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.2s;
+    }
+    .pr-nav-link:hover { color: #c9a84c; }
+    .pr-nav-link i { font-size: 16px; }
+
+    /* POPUP (FLASH MESSAGE) */
+    .pr-popup {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #fffdf8;
+      border: 1px solid rgba(201, 168, 76, 0.53);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #8a6e1a;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(201, 168, 76, 0.13);
+    }
+    .pr-popup i { font-size: 18px; color: #4a9a6c; }
+
+    /* LAYOUT */
+    .pr-container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+    .pr-page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #0a1520;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .pr-page-sub {
+      font-size: 12px;
+      color: #7a6e5f;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    /* CARD */
+    .pr-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.33);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 2px 16px rgba(201, 168, 76, 0.06);
+      margin-bottom: 18px;
+    }
+
+    /* SECTION LABEL */
+    .pr-section-label {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #7a6e5f;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pr-section-label i { font-size: 15px; color: #a8882c; }
+
+    /* FORM */
+    .pr-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .pr-field { display: flex; flex-direction: column; gap: 5px; }
+    .pr-field.full { grid-column: 1 / -1; }
+    .pr-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8a7a66;
+      font-weight: 500;
+    }
+    .pr-input {
+      background: #f8f3e8;
+      border: 1px solid #e0d4b0;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: #1a2b3c;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .pr-input:focus {
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+    }
+    .pr-input:disabled {
+      background: #ede8d8;
+      color: #8a7a66;
+      cursor: not-allowed;
+    }
+    .pr-btn-update {
+      grid-column: 1 / -1;
+      margin-top: 6px;
+      padding: 14px;
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      border: none;
+      border-radius: 10px;
+      color: #f0d98c;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: opacity 0.2s;
+    }
+    .pr-btn-update:hover { opacity: 0.88; }
+    .pr-btn-update i { font-size: 17px; }
+
+    /* DIVIDER */
+    .pr-divider { border: none; border-top: 1px solid #ddd4b8; margin: 2px 0 16px; }
+
+    /* ORDER ITEMS */
+    .pr-order-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #ede5cc;
+      align-items: flex-start;
+    }
+    .pr-order-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .pr-order-thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      flex-shrink: 0;
+    }
+    .pr-order-thumb-ph {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pr-order-thumb-ph i { font-size: 22px; color: #a8882c; }
+
+    .pr-order-info { flex: 1; }
+    .pr-order-name { font-size: 14px; font-weight: 500; color: #0a1520; margin-bottom: 3px; }
+    .pr-order-meta { font-size: 12px; color: #8a7a66; margin-bottom: 6px; }
+    .pr-order-total {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #8a6e1a;
+      margin-bottom: 8px;
+    }
+    .pr-status-pill {
+      display: inline-block;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      border-radius: 20px;
+      padding: 2px 11px;
+      font-size: 11px;
+      color: #8a6e1a;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    /* ORDER TRACKER */
+    .pr-tracker { display: flex; align-items: center; gap: 0; }
+    .pr-track-step { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .pr-track-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pr-track-dot.done { background: #c9a84c; border: 1px solid #a8882c; }
+    .pr-track-dot.done i { font-size: 11px; color: #0a1520; }
+    .pr-track-dot.pending { background: #ede5cc; border: 1px solid #d4c8a0; }
+    .pr-track-dot.pending i { font-size: 11px; color: #b0a080; }
+    .pr-track-label { font-size: 10px; color: #8a7a66; letter-spacing: 0.3px; white-space: nowrap; }
+    .pr-track-label.done { color: #8a6e1a; font-weight: 500; }
+    .pr-track-line { height: 2px; flex: 1; min-width: 18px; margin-bottom: 14px; }
+    .pr-track-line.done { background: #c9a84c; }
+    .pr-track-line.pending { background: #ddd4b8; }
+
+    /* LOGOUT */
+    .pr-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0a1520;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 10px;
+      padding: 11px 22px;
+      color: #f0d98c;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .pr-logout:hover { opacity: 0.82; }
+    .pr-logout i { font-size: 16px; }
+
+    /* EMPTY */
+    .pr-empty { text-align: center; padding: 32px; color: #8a7a66; font-size: 14px; }
+    .pr-empty i { font-size: 36px; color: #d4c9aa; display: block; margin-bottom: 10px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 500px) {
+      .pr-form-grid { grid-template-columns: 1fr; }
+      .pr-field.full { grid-column: 1; }
+      .pr-btn-update { grid-column: 1; }
+      .pr-page-title { font-size: 24px; }
+      .pr-container { padding: 14px 10px 36px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- POPUP (FLASH MESSAGE) -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="pr-popup" id="popup">
+        <i class="ti ti-circle-check"></i>
+        {{ messages[0] }}
+      </div>
+      <script>
+        setTimeout(() => {
+          document.getElementById("popup").style.display = "none";
+        }, 2500);
+      </script>
+    {% endif %}
+  {% endwith %}
+
+  <!-- NAVBAR -->
+  <nav class="pr-nav">
+    <span class="pr-brand">Minicart</span>
+    <div class="pr-nav-right">
+      <a href="/user-home" class="pr-nav-link">
+        <i class="ti ti-home"></i> Home
+      </a>
+      <a href="/cart" class="pr-nav-link">
+        <i class="ti ti-shopping-cart"></i> Cart
+      </a>
+    </div>
+  </nav>
+
+  <div class="pr-container">
+
+    <div class="pr-page-title">My Profile</div>
+    <div class="pr-page-sub">Manage your account &amp; orders</div>
+
+    <!-- PROFILE FORM -->
+    <div class="pr-card">
+      <div class="pr-section-label">
+        <i class="ti ti-user"></i> Personal Details
+      </div>
+      <form method="POST">
+        <div class="pr-form-grid">
+
+          <div class="pr-field full">
+            <label class="pr-label">Full Name</label>
+            <input class="pr-input" type="text" name="name"
+                   value="{{ user[0] or '' }}" placeholder="Your full name">
+          </div>
+
+          <div class="pr-field full">
+            <label class="pr-label">Email</label>
+            <input class="pr-input" type="email"
+                   value="{{ user[1] }}" disabled>
+          </div>
+
+          <div class="pr-field full">
+            <label class="pr-label">Address Line 1</label>
+            <input class="pr-input" type="text" name="address1"
+                   value="{{ user[2] or '' }}" placeholder="Street / House no.">
+          </div>
+
+          <div class="pr-field full">
+            <label class="pr-label">Address Line 2</label>
+            <input class="pr-input" type="text" name="address2"
+                   value="{{ user[3] or '' }}" placeholder="Landmark, Area (optional)">
+          </div>
+
+          <div class="pr-field">
+            <label class="pr-label">City</label>
+            <input class="pr-input" type="text" name="city"
+                   value="{{ user[4] or '' }}">
+          </div>
+
+          <div class="pr-field">
+            <label class="pr-label">Pincode</label>
+            <input class="pr-input" type="text" name="pincode"
+                   value="{{ user[5] or '' }}">
+          </div>
+
+          <div class="pr-field full">
+            <label class="pr-label">State</label>
+            <input class="pr-input" type="text" value="Chhattisgarh" disabled>
+          </div>
+
+          <button type="submit" class="pr-btn-update">
+            <i class="ti ti-device-floppy"></i>
+            Update Profile
+          </button>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="pr-card">
+      <div class="pr-section-label">
+        <i class="ti ti-package"></i> My Orders
+      </div>
+      <hr class="pr-divider">
+
+      {% if orders %}
+
+        {% for o in orders %}
+        <div class="pr-order-item">
+
+          {% if o[2] %}
+            <img src="{{ o[2] }}" class="pr-order-thumb" alt="{{ o[1] }}">
+          {% else %}
+            <div class="pr-order-thumb-ph">
+              <i class="ti ti-shopping-bag"></i>
+            </div>
+          {% endif %}
+
+          <div class="pr-order-info">
+            <div class="pr-order-name">{{ o[1] }}</div>
+            <div class="pr-order-meta">Qty: {{ o[4] }} &nbsp;·&nbsp; ₹{{ o[3] }} each</div>
+            <div class="pr-order-total">₹{{ o[5] }}</div>
+            <div class="pr-status-pill">✦ {{ o[6] }}</div>
+
+            <!-- TRACKING STEPS -->
+            <div class="pr-tracker">
+
+              <div class="pr-track-step">
+                <div class="pr-track-dot {% if o[6] in ['Confirmed','Packed','Shipped','Delivered'] %}done{% else %}pending{% endif %}">
+                  <i class="ti {% if o[6] in ['Confirmed','Packed','Shipped','Delivered'] %}ti-check{% else %}ti-clock{% endif %}"></i>
+                </div>
+                <div class="pr-track-label {% if o[6] in ['Confirmed','Packed','Shipped','Delivered'] %}done{% endif %}">Confirmed</div>
+              </div>
+
+              <div class="pr-track-line {% if o[6] in ['Packed','Shipped','Delivered'] %}done{% else %}pending{% endif %}"></div>
+
+              <div class="pr-track-step">
+                <div class="pr-track-dot {% if o[6] in ['Packed','Shipped','Delivered'] %}done{% else %}pending{% endif %}">
+                  <i class="ti {% if o[6] in ['Packed','Shipped','Delivered'] %}ti-check{% else %}ti-clock{% endif %}"></i>
+                </div>
+                <div class="pr-track-label {% if o[6] in ['Packed','Shipped','Delivered'] %}done{% endif %}">Packed</div>
+              </div>
+
+              <div class="pr-track-line {% if o[6] in ['Shipped','Delivered'] %}done{% else %}pending{% endif %}"></div>
+
+              <div class="pr-track-step">
+                <div class="pr-track-dot {% if o[6] in ['Shipped','Delivered'] %}done{% else %}pending{% endif %}">
+                  <i class="ti {% if o[6] in ['Shipped','Delivered'] %}ti-check{% else %}ti-clock{% endif %}"></i>
+                </div>
+                <div class="pr-track-label {% if o[6] in ['Shipped','Delivered'] %}done{% endif %}">Shipped</div>
+              </div>
+
+              <div class="pr-track-line {% if o[6] == 'Delivered' %}done{% else %}pending{% endif %}"></div>
+
+              <div class="pr-track-step">
+                <div class="pr-track-dot {% if o[6] == 'Delivered' %}done{% else %}pending{% endif %}">
+                  <i class="ti {% if o[6] == 'Delivered' %}ti-check{% else %}ti-clock{% endif %}"></i>
+                </div>
+                <div class="pr-track-label {% if o[6] == 'Delivered' %}done{% endif %}">Delivered</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <div class="pr-empty">
+          <i class="ti ti-package-off"></i>
+          No orders yet
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- LOGOUT -->
+    <a href="/logout" class="pr-logout">
+      <i class="ti ti-logout"></i>
+      Logout
+    </a>
+
+  </div>
+
+</body>
+</html>

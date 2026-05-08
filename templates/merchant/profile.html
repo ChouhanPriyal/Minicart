@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Profile</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
+
+    /* ── NAVBAR ── */
+    .mn-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .mn-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .mn-nav-right { display: flex; align-items: center; gap: 6px; }
+    .mn-links { display: flex; align-items: center; gap: 2px; }
+    .mn-link {
+      color: #a09070;
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 11px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .mn-link:hover { color: #f0d98c; background: rgba(201, 168, 76, 0.08); }
+    .mn-link.active { color: #f0d98c; background: rgba(201, 168, 76, 0.13); font-weight: 500; }
+    .mn-divider { width: 1px; height: 20px; background: rgba(201, 168, 76, 0.2); margin: 0 4px; }
+
+    /* DROPDOWN */
+    .mn-drop-wrap { position: relative; }
+    .mn-drop-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(201, 168, 76, 0.1);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 8px; padding: 6px 13px;
+      color: #f0d98c; font-size: 13px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s;
+    }
+    .mn-drop-btn:hover { background: rgba(201, 168, 76, 0.18); }
+    .mn-drop-btn i { font-size: 16px; color: #c9a84c; }
+    .mn-caret { font-size: 13px; color: #a09070; transition: transform 0.2s; }
+    .mn-caret.open { transform: rotate(180deg); }
+    .mn-dropdown {
+      display: none; position: absolute; right: 0;
+      top: calc(100% + 8px);
+      background: #0d1e2e;
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 12px; min-width: 160px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .mn-dropdown.show { display: block; }
+    .mn-drop-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 16px; font-size: 13px;
+      color: #c8bfa8; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .mn-drop-item:hover { background: rgba(201, 168, 76, 0.1); color: #f0d98c; }
+    .mn-drop-item.current { color: #f0d98c; }
+    .mn-drop-item i { font-size: 15px; }
+    .mn-drop-item.danger { color: #e08080; }
+    .mn-drop-item.danger:hover { background: rgba(200, 80, 80, 0.1); color: #f09090; }
+    .mn-drop-sep { border: none; border-top: 1px solid rgba(201, 168, 76, 0.15); }
+
+    /* ── CONTENT ── */
+    .mp-container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 32px 20px 52px;
+    }
+    .mp-page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 600;
+      color: #0a1520; letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .mp-page-sub {
+      font-size: 12px; color: #7a6e5f;
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    /* CARD */
+    .mp-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.35);
+      border-radius: 16px; padding: 24px;
+      box-shadow: 0 2px 12px rgba(201, 168, 76, 0.06);
+      margin-bottom: 18px;
+    }
+    .mp-section-label {
+      font-size: 11px; letter-spacing: 2.5px;
+      text-transform: uppercase; color: #7a6e5f;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mp-section-label i { font-size: 15px; color: #a8882c; }
+    .mp-divider { border: none; border-top: 1px solid #e8dfc8; margin-bottom: 20px; }
+
+    /* FORM */
+    .mp-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .mp-field { display: flex; flex-direction: column; gap: 5px; }
+    .mp-field.full { grid-column: 1 / -1; }
+    .mp-label {
+      font-size: 11px; letter-spacing: 1.5px;
+      text-transform: uppercase; color: #8a7a66; font-weight: 500;
+    }
+    .mp-input {
+      background: #f8f3e8;
+      border: 1px solid #e0d4b0;
+      border-radius: 8px; padding: 10px 13px;
+      font-size: 14px; font-family: 'DM Sans', sans-serif;
+      color: #1a2b3c; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .mp-input:focus {
+      border-color: #c9a84c;
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
+    }
+    .mp-input:disabled {
+      background: #ede8d8; color: #8a7a66; cursor: not-allowed;
+    }
+
+    /* BUTTONS */
+    .mp-btn {
+      grid-column: 1 / -1;
+      margin-top: 4px; padding: 14px;
+      border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: opacity 0.2s;
+    }
+    .mp-btn i { font-size: 17px; }
+    .mp-btn-dark {
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      color: #f0d98c;
+    }
+    .mp-btn-dark:hover { opacity: 0.88; }
+    .mp-btn-gold {
+      background: linear-gradient(135deg, #a8882c, #c9a84c);
+      color: #0a1520;
+    }
+    .mp-btn-gold:hover { opacity: 0.88; }
+
+    /* LOGOUT */
+    .mp-logout {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #0a1520;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 10px; padding: 11px 22px;
+      color: #f0d98c; font-size: 13px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      text-decoration: none; transition: opacity 0.2s;
+    }
+    .mp-logout:hover { opacity: 0.82; }
+    .mp-logout i { font-size: 16px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 500px) {
+      .mp-form-grid { grid-template-columns: 1fr; }
+      .mp-field.full { grid-column: 1; }
+      .mp-btn { grid-column: 1; }
+      .mn-links { display: none; }
+      .mn-nav { padding: 0 14px; }
+      .mp-container { padding: 18px 12px 40px; }
+      .mp-page-title { font-size: 24px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="mn-nav">
+    <span class="mn-brand">Minicart</span>
+
+    <div class="mn-nav-right">
+      <div class="mn-links">
+        <a href="/merchant-dashboard" class="mn-link">Dashboard</a>
+        <a href="/add-product"        class="mn-link">Add Product</a>
+        <a href="/products"           class="mn-link">Products</a>
+        <a href="/orders"             class="mn-link">Orders</a>
+        <div class="mn-divider"></div>
+      </div>
+
+      <div class="mn-drop-wrap">
+        <button class="mn-drop-btn" onclick="toggleDrop()">
+          <i class="ti ti-user-circle"></i>
+          {{ session.user_name }}
+          <i class="ti ti-chevron-down mn-caret" id="mnCaret"></i>
+        </button>
+        <div class="mn-dropdown" id="mnDropdown">
+          <a href="/merchant/profile" class="mn-drop-item current">
+            <i class="ti ti-user"></i> My Profile
+          </a>
+          <hr class="mn-drop-sep">
+          <a href="/logout" class="mn-drop-item danger">
+            <i class="ti ti-logout"></i> Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="mp-container">
+
+    <div class="mp-page-title">Merchant Profile</div>
+    <div class="mp-page-sub">Manage your account details</div>
+
+    <!-- PROFILE UPDATE FORM -->
+    <div class="mp-card">
+      <div class="mp-section-label">
+        <i class="ti ti-user"></i> Personal Details
+      </div>
+      <hr class="mp-divider">
+
+      <form method="POST">
+        <div class="mp-form-grid">
+
+          <div class="mp-field full">
+            <label class="mp-label">Full Name</label>
+            <input class="mp-input" type="text" name="name"
+                   value="{{ merchant[0] if merchant[0] else '' }}"
+                   placeholder="Your full name">
+          </div>
+
+          <div class="mp-field full">
+            <label class="mp-label">Email</label>
+            <input class="mp-input" type="email"
+                   value="{{ merchant[1] }}" disabled>
+          </div>
+
+          <div class="mp-field full">
+            <label class="mp-label">Address Line 1</label>
+            <input class="mp-input" type="text" name="address1"
+                   value="{{ merchant[2] if merchant[2] else '' }}"
+                   placeholder="Street / House no.">
+          </div>
+
+          <div class="mp-field full">
+            <label class="mp-label">Address Line 2</label>
+            <input class="mp-input" type="text" name="address2"
+                   value="{{ merchant[3] if merchant[3] else '' }}"
+                   placeholder="Landmark, Area (optional)">
+          </div>
+
+          <div class="mp-field">
+            <label class="mp-label">City</label>
+            <input class="mp-input" type="text" name="city"
+                   value="{{ merchant[4] if merchant[4] else '' }}">
+          </div>
+
+          <div class="mp-field">
+            <label class="mp-label">Pincode</label>
+            <input class="mp-input" type="text" name="pincode"
+                   value="{{ merchant[5] if merchant[5] else '' }}">
+          </div>
+
+          <button type="submit" class="mp-btn mp-btn-dark">
+            <i class="ti ti-device-floppy"></i>
+            Update Profile
+          </button>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- CHANGE PASSWORD FORM -->
+    <div class="mp-card">
+      <div class="mp-section-label">
+        <i class="ti ti-lock"></i> Change Password
+      </div>
+      <hr class="mp-divider">
+
+      <form method="POST" action="/change-password">
+        <div class="mp-form-grid">
+
+          <div class="mp-field full">
+            <label class="mp-label">Old Password</label>
+            <input class="mp-input" type="password" name="old_password"
+                   placeholder="Enter current password">
+          </div>
+
+          <div class="mp-field full">
+            <label class="mp-label">New Password</label>
+            <input class="mp-input" type="password" name="new_password"
+                   placeholder="Enter new password">
+          </div>
+
+          <button type="submit" class="mp-btn mp-btn-gold">
+            <i class="ti ti-key"></i>
+            Change Password
+          </button>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- LOGOUT -->
+    <a href="/logout" class="mp-logout">
+      <i class="ti ti-logout"></i>
+      Logout
+    </a>
+
+  </div>
+
+  <script>
+    function toggleDrop() {
+      document.getElementById('mnDropdown').classList.toggle('show');
+      document.getElementById('mnCaret').classList.toggle('open');
+    }
+    window.addEventListener('click', function (e) {
+      if (!e.target.closest('.mn-drop-wrap')) {
+        document.getElementById('mnDropdown').classList.remove('show');
+        document.getElementById('mnCaret').classList.remove('open');
+      }
+    });
+  </script>
+
+</body>
+</html>

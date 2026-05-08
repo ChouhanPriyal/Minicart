@@ -1,409 +1,289 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <title>MiniCart — {{ product.name }}</title>
-    <style>
-        :root {
-            --navy: #1a2235;
-            --navy-light: #243048;
-            --gold: #c9a84c;
-            --cream: #f5f0e8;
-            --cream-dark: #ede6d8;
-            --text-dark: #1a2235;
-            --text-muted: #6b7280;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f0e8;
+      min-height: 100vh;
+      color: #1a2b3c;
+    }
 
-        body {
-            background: var(--cream);
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text-dark);
-            min-height: 100vh;
-        }
+    /* ── NAVBAR ── */
+    .un-nav {
+      background: #0a1520;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.33);
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .un-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #c9a84c, #f0d98c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .un-links { display: flex; align-items: center; gap: 2px; }
+    .un-link {
+      color: #a09070;
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 11px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+      display: flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .un-link:hover { color: #f0d98c; background: rgba(201, 168, 76, 0.08); }
+    .un-link i { font-size: 15px; }
 
-        /* ── NAVBAR ── */
-        .navbar {
-            background: var(--navy);
-            padding: 0 2.5rem;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-        }
-        .logo {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -0.02em;
-        }
-        .logo span { color: var(--gold); }
+    /* ── CONTENT ── */
+    .pd-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+    }
 
-        .nav-links { display: flex; align-items: center; gap: 2rem; }
-        .nav-links a {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 400;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            transition: color 0.2s;
-            position: relative;
-            padding-bottom: 2px;
-        }
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -2px; left: 0;
-            width: 0; height: 1px;
-            background: var(--gold);
-            transition: width 0.25s;
-        }
-        .nav-links a:hover { color: #fff; }
-        .nav-links a:hover::after { width: 100%; }
+    /* BREADCRUMB */
+    .pd-breadcrumb {
+      font-size: 12px; color: #a09070;
+      letter-spacing: 0.5px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pd-breadcrumb i { font-size: 13px; }
+    .pd-breadcrumb a { color: #a09070; text-decoration: none; transition: color 0.2s; }
+    .pd-breadcrumb a:hover { color: #c9a84c; }
 
-        .cart-badge {
-            background: var(--gold);
-            color: var(--navy);
-            border-radius: 6px;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
-        .nav-icon { color: rgba(255,255,255,0.75); cursor: pointer; transition: color 0.2s; display: flex; align-items: center; }
-        .nav-icon:hover { color: #fff; }
-        .avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            background: var(--gold);
-            color: var(--navy);
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-        }
+    /* PRODUCT CARD */
+    .pd-card {
+      background: #fffdf8;
+      border: 1px solid rgba(217, 201, 154, 0.35);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(201, 168, 76, 0.08);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
 
-        /* ── BREADCRUMB ── */
-        .breadcrumb {
-            padding: 1rem 2.5rem;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-        .breadcrumb a:hover { color: var(--navy); }
-        .breadcrumb span { color: var(--navy); font-weight: 500; }
+    /* IMAGE PANEL */
+    .pd-image-wrap { position: relative; background: #f0e8d0; }
+    .pd-image {
+      width: 100%; height: 100%; min-height: 360px;
+      object-fit: cover; display: block;
+    }
+    .pd-image-ph {
+      width: 100%; min-height: 360px;
+      background: #f0e8d0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pd-image-ph i { font-size: 64px; color: #c9a84c; }
+    .pd-category-badge {
+      position: absolute; top: 16px; left: 16px;
+      background: rgba(10, 21, 32, 0.75);
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 11px; color: #f0d98c;
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
 
-        /* ── PAGE ── */
-        .page-wrapper {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 1rem 2rem 5rem;
-        }
+    /* DETAILS PANEL */
+    .pd-details {
+      padding: 36px 32px;
+      display: flex; flex-direction: column;
+    }
+    .pd-label {
+      font-size: 11px; letter-spacing: 2.5px;
+      text-transform: uppercase; color: #7a6e5f;
+      margin-bottom: 8px;
+    }
+    .pd-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px; font-weight: 600;
+      color: #0a1520; letter-spacing: 0.5px;
+      line-height: 1.2; margin-bottom: 12px;
+    }
+    .pd-price-row {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 20px;
+    }
+    .pd-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px; font-weight: 700;
+      color: #a8882c;
+    }
+    .pd-price-label { font-size: 12px; color: #8a7a66; letter-spacing: 1px; }
 
-        /* ── PRODUCT CARD ── */
-        .product-card {
-            background: #fff;
-            border-radius: 16px;
-            border: 1px solid rgba(26,34,53,0.06);
-            box-shadow: 0 4px 32px rgba(26,34,53,0.08);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            overflow: hidden;
-            min-height: 520px;
-        }
+    /* META CHIPS */
+    .pd-meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .pd-meta-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 11px; color: #7a6040; letter-spacing: 0.5px;
+    }
+    .pd-meta-chip i { font-size: 13px; color: #a8882c; }
 
-        /* Image panel */
-        .image-panel {
-            position: relative;
-            background: var(--cream);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2.5rem;
-        }
-        .product-img {
-            width: 100%;
-            max-height: 460px;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-        .featured-tag {
-            position: absolute;
-            top: 1.25rem;
-            left: 1.25rem;
-            background: var(--navy);
-            color: var(--gold);
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            padding: 0.3rem 0.75rem;
-            border-radius: 4px;
-        }
+    /* DIVIDER */
+    .pd-divider { border: none; border-top: 1px solid #e8dfc8; margin: 16px 0; }
 
-        /* Details panel */
-        .details-panel {
-            padding: 2.5rem;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid var(--cream-dark);
-        }
+    /* DESCRIPTION */
+    .pd-desc-label {
+      font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; color: #7a6e5f;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pd-desc-label i { font-size: 13px; color: #a8882c; }
+    .pd-desc {
+      font-size: 14px; color: #4a3c28;
+      line-height: 1.75; margin-bottom: 28px;
+      flex: 1;
+    }
 
-        .product-category {
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gold);
-            margin-bottom: 0.75rem;
-        }
+    /* ACTION BUTTONS */
+    .pd-actions { display: flex; gap: 10px; }
+    .pd-btn-cart {
+      flex: 1;
+      display: inline-flex; align-items: center;
+      justify-content: center; gap: 9px;
+      background: linear-gradient(135deg, #0d1b2a, #1a3050);
+      border: none; border-radius: 10px;
+      padding: 14px 20px;
+      color: #f0d98c;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      text-decoration: none;
+      transition: opacity 0.2s; cursor: pointer;
+    }
+    .pd-btn-cart:hover { opacity: 0.88; }
+    .pd-btn-cart i { font-size: 17px; }
+    .pd-btn-wish {
+      width: 46px; height: 46px;
+      background: #f0e8d0;
+      border: 1px solid rgba(201, 168, 76, 0.35);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none;
+      transition: background 0.2s;
+      flex-shrink: 0; align-self: center;
+    }
+    .pd-btn-wish:hover { background: #e8dab8; }
+    .pd-btn-wish i { font-size: 20px; color: #a8882c; }
 
-        .product-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--navy);
-            line-height: 1.1;
-            margin-bottom: 1rem;
-        }
-
-        .price-row {
-            display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .price {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--navy);
-            line-height: 1;
-        }
-        .price-tax {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-        }
-
-        .divider { height: 1px; background: var(--cream-dark); margin: 1.25rem 0; }
-
-        .desc-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
-        .product-description {
-            font-size: 0.9rem;
-            line-height: 1.75;
-            color: var(--text-muted);
-            flex: 1;
-        }
-
-        /* Trust chips */
-        .trust-row {
-            display: flex;
-            gap: 0.625rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
-        }
-        .trust-chip {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: var(--cream);
-            border: 1px solid var(--cream-dark);
-            border-radius: 20px;
-            padding: 0.32rem 0.8rem;
-            font-size: 0.73rem;
-            font-weight: 500;
-            color: var(--navy);
-        }
-        .trust-chip svg { color: var(--gold); flex-shrink: 0; }
-
-        /* ── CTA BUTTONS ── */
-        .cta-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-top: auto;
-        }
-
-        /* Add to Cart — navy primary */
-        .btn-cart {
-            background: var(--navy);
-            color: #fff;
-            border: none;
-            padding: 1rem;
-            border-radius: 9px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-        }
-        .btn-cart:hover {
-            background: var(--navy-light);
-            box-shadow: 0 6px 20px rgba(26,34,53,0.22);
-            transform: translateY(-1px);
-        }
-
-        /* Wishlist — outline with heart */
-        .btn-wishlist {
-            background: transparent;
-            color: var(--navy);
-            border: 1.5px solid var(--cream-dark);
-            padding: 0.875rem;
-            border-radius: 9px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            text-decoration: none;
-            color: var(--navy);
-            transition: all 0.2s;
-        }
-        .btn-wishlist:hover {
-            border-color: #e57a8a;
-            background: #fff5f6;
-            color: #b91c3a;
-        }
-        .btn-wishlist:hover svg {
-            stroke: #b91c3a;
-            fill: #ffd6dd;
-        }
-        .btn-wishlist svg { transition: fill 0.2s, stroke 0.2s; }
-    </style>
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .pd-card { grid-template-columns: 1fr; }
+      .pd-image { min-height: 220px; }
+      .pd-image-ph { min-height: 220px; }
+      .pd-details { padding: 22px 18px; }
+      .pd-name { font-size: 24px; }
+      .pd-price { font-size: 28px; }
+      .un-link span { display: none; }
+      .un-nav { padding: 0 14px; }
+      .pd-container { padding: 20px 12px 40px; }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ── NAVBAR ── -->
-<nav class="navbar">
-    <div class="logo">Mini<span>Cart</span></div>
-    <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/cart">
-            <span class="cart-badge">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                Cart
-            </span>
-        </a>
-        <a href="/orders">Orders</a>
-        <a href="/profile">Profile</a>
+  <!-- NAVBAR -->
+  <nav class="un-nav">
+    <span class="un-brand">MiniCart</span>
+    <div class="un-links">
+      <a href="/user-home" class="un-link">
+        <i class="ti ti-home"></i><span>Home</span>
+      </a>
+      <a href="/cart" class="un-link">
+        <i class="ti ti-shopping-cart"></i><span>Cart</span>
+      </a>
+      <a href="/profile" class="un-link">
+        <i class="ti ti-user"></i><span>Profile</span>
+      </a>
     </div>
-    <div class="nav-icons">
-        <span class="nav-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
-        </span>
-        <span class="nav-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-        </span>
-        <div class="avatar">S</div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="pd-container">
+
+    <!-- BREADCRUMB -->
+    <div class="pd-breadcrumb">
+      <a href="/user-home"><i class="ti ti-home"></i> Home</a>
+      <i class="ti ti-chevron-right"></i>
+      <span>{{ product[1] }}</span>
     </div>
-</nav>
 
-<!-- ── BREADCRUMB ── */
-<div class="breadcrumb">
-    <a href="/">Home</a>
-    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    <a href="/">Products</a>
-    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    <span>{{ product.name }}</span>
-</div>
+    <div class="pd-card">
 
-<!-- ── PAGE ── -->
-<div class="page-wrapper">
-    <div class="product-card">
+      <!-- IMAGE PANEL -->
+      <div class="pd-image-wrap">
+        {% if product[4] %}
+          <img src="{{ product[4] }}" class="pd-image" alt="{{ product[1] }}">
+        {% else %}
+          <div class="pd-image-ph">
+            <i class="ti ti-photo"></i>
+          </div>
+        {% endif %}
 
-        <!-- Left: Image -->
-        <div class="image-panel">
-            <span class="featured-tag">Featured</span>
-            <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
-                 onerror="this.src='/static/default.png'"
-                 class="product-img"
-                 alt="{{ product.name }}">
+        {% if product[5] %}
+          <span class="pd-category-badge">{{ product[5] }}</span>
+        {% endif %}
+      </div>
+
+      <!-- DETAILS PANEL -->
+      <div class="pd-details">
+
+        <div class="pd-label">Product Details</div>
+        <div class="pd-name">{{ product[1] }}</div>
+
+        <div class="pd-price-row">
+          <span class="pd-price">₹{{ product[2] }}</span>
+          <span class="pd-price-label">incl. taxes</span>
         </div>
 
-        <!-- Right: Details -->
-        <div class="details-panel">
-
-            <div class="product-category">MiniCart Exclusive</div>
-
-            <h1 class="product-name">{{ product.name }}</h1>
-
-            <div class="price-row">
-                <span class="price">₹{{ product.price }}</span>
-                <span class="price-tax">incl. tax</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="desc-label">About this product</div>
-            <p class="product-description">{{ product.description }}</p>
-
-            <!-- Trust chips -->
-            <div class="trust-row">
-                <div class="trust-chip">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Secure Checkout
-                </div>
-                <div class="trust-chip">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    Free Delivery
-                </div>
-                <div class="trust-chip">
-                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-                    Easy Returns
-                </div>
-            </div>
-
-            <!-- CTA -->
-            <div class="cta-group">
-                <!-- Add to Cart — original href preserved -->
-                <a href="/add-to-cart/{{ product.id }}" class="btn-cart">
-                    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                    Add to Cart
-                </a>
-
-                <!-- Wishlist — original href preserved -->
-                <a href="/add-to-wishlist/{{ product.id }}" class="btn-wishlist">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-                    Add to Wishlist
-                </a>
-            </div>
-
+        <div class="pd-meta-row">
+          <span class="pd-meta-chip"><i class="ti ti-truck"></i> Free delivery</span>
+          <span class="pd-meta-chip"><i class="ti ti-refresh"></i> Easy returns</span>
+          <span class="pd-meta-chip"><i class="ti ti-shield-check"></i> Genuine product</span>
         </div>
+
+        <hr class="pd-divider">
+
+        <div class="pd-desc-label">
+          <i class="ti ti-info-circle"></i> Description
+        </div>
+        <div class="pd-desc">{{ product[3] }}</div>
+
+        <!-- ADD TO CART -->
+        <div class="pd-actions">
+          <a href="/add_to_cart/{{ product[0] }}" class="pd-btn-cart">
+            <i class="ti ti-shopping-cart-plus"></i>
+            Add to Cart
+          </a>
+        </div>
+
+      </div>
     </div>
-</div>
+
+  </div>
 
 </body>
 </html>

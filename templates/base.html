@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Ecommerce{% endblock %}</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- 🔔 FLASH POPUP SYSTEM (GLOBAL FOR ALL PAGES) -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="fixed top-5 right-5 space-y-2 z-50">
+
+        {% for category, message in messages %}
+          <div class="px-4 py-2 rounded shadow text-white
+                      {% if category == 'success' %} bg-green-500
+                      {% elif category == 'error' %} bg-red-500
+                      {% else %} bg-blue-500 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <script>
+    setTimeout(() => {
+      document.querySelectorAll(".fixed div").forEach(el => {
+        el.style.transition = "0.5s";
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 500);
+      });
+    }, 2500);
+  </script>
+
+  <!-- NAVBAR -->
+  <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    
+    <div class="text-xl font-bold text-blue-600">
+      EcommerceV2
+    </div>
+
+    <div class="space-x-4">
+      <a href="/home" class="text-gray-700 hover:text-blue-600">Home</a>
+      <a href="/cart" class="text-gray-700 hover:text-blue-600">Cart</a>
+      <a href="#" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+      <a href="/logout" class="text-gray-700 hover:text-blue-600">Logout</a>
+    </div>
+
+  </nav>
+
+  <!-- PAGE CONTENT -->
+  <div class="p-6">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+</body>
+</html>
