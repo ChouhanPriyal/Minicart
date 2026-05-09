@@ -362,28 +362,32 @@
         </div>
 
         <!-- ACTION BUTTONS -->
-        <div class="mo-actions-row">
-          <span class="mo-actions-label">Update:</span>
+<div class="mo-actions-row">
+  <span class="mo-actions-label">Update:</span>
 
-          <a href="/update-order/{{ o[0] }}/Confirmed" class="mo-act-btn ab-confirm">
-            <i class="ti ti-check"></i> Confirm
-          </a>
-          <a href="/update-order/{{ o[0] }}/Packed" class="mo-act-btn ab-packed">
-            <i class="ti ti-box"></i> Packed
-          </a>
-          <a href="/update-order/{{ o[0] }}/Shipped" class="mo-act-btn ab-shipped">
-            <i class="ti ti-truck"></i> Shipped
-          </a>
-          <a href="/update-order/{{ o[0] }}/Delivered" class="mo-act-btn ab-delivered">
-            <i class="ti ti-circle-check"></i> Delivered
-          </a>
-          <a href="/delete-order/{{ o[0] }}" class="mo-act-btn ab-delete"
-             onclick="return confirm('Delete this order?')">
-            <i class="ti ti-trash"></i> Delete
-          </a>
-        </div>
+  <a href="/update-order/{{ o[0] }}/Confirmed" class="mo-act-btn ab-confirm">
+    <i class="ti ti-check"></i> Confirm
+  </a>
 
-      </div>
+  <a href="/update-order/{{ o[0] }}/Packed" class="mo-act-btn ab-packed">
+    <i class="ti ti-box"></i> Packed
+  </a>
+
+  <a href="/update-order/{{ o[0] }}/Shipped" class="mo-act-btn ab-shipped">
+    <i class="ti ti-truck"></i> Shipped
+  </a>
+
+  <a href="/update-order/{{ o[0] }}/Delivered" class="mo-act-btn ab-delivered">
+    <i class="ti ti-circle-check"></i> Delivered
+  </a>
+
+  <!-- DELETE BUTTON -->
+  <a href="/update-order/{{ o[0] }}/Rejected"
+    onclick="return confirm('Reject this order?')"
+    class="mo-act-btn ab-delete">
+    <i class="ti ti-x"></i> Reject
+  </a>
+</div>
 
       {% endfor %}
 

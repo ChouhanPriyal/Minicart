@@ -1,21 +1,36 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from extensions import mysql
+from dotenv import load_dotenv
+import os
+import sqlite3
 import cloudinary
 import cloudinary.uploader
 
-# ✅ CLOUDINARY CONFIG
+load_dotenv()
+
+# =========================
+# CLOUDINARY CONFIG
+# =========================
 cloudinary.config(
-    cloud_name="dkz4irhst",
-    api_key="253841239949845",
-    api_secret="PuIlQcJzemhgOzd5TBJUIiE3qNk",
+    cloud_name=os.getenv("CLOUD_NAME"),
+    api_key=os.getenv("API_KEY"),
+    api_secret=os.getenv("API_SECRET"),
     secure=True
 )
 
 merchant_bp = Blueprint("merchant", __name__)
 
 
+# -------------------------
+# DB CONNECTION
+# -------------------------
+def get_db_connection():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 # =========================
-# 🧑‍💼 DASHBOARD
+# DASHBOARD
 # =========================
 @merchant_bp.route("/merchant-dashboard")
 def merchant_dashboard():
@@ -24,16 +39,18 @@ def merchant_dashboard():
         return redirect("/login")
 
     merchant_id = session["user_id"]
-    cur = mysql.connection.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM products WHERE merchant_id=%s", (merchant_id,))
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) FROM products WHERE merchant_id = ?", (merchant_id,))
     total_products = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id=%s
+        WHERE p.merchant_id = ?
     """, (merchant_id,))
     total_orders = cur.fetchone()[0]
 
@@ -41,19 +58,19 @@ def merchant_dashboard():
         SELECT COUNT(*)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id=%s AND o.status='pending'
+        WHERE p.merchant_id = ? AND o.status = 'pending'
     """, (merchant_id,))
     pending_orders = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT IFNULL(SUM(o.total_price),0)
+        SELECT IFNULL(SUM(o.total_price), 0)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id=%s
+        WHERE p.merchant_id = ?
     """, (merchant_id,))
     revenue = cur.fetchone()[0]
 
-    cur.close()
+    conn.close()
 
     return render_template(
         "merchant/dashboard.html",
@@ -65,7 +82,7 @@ def merchant_dashboard():
 
 
 # =========================
-# ➕ ADD PRODUCT (WITH CATEGORY)
+# ADD PRODUCT
 # =========================
 @merchant_bp.route("/add-product", methods=["GET", "POST"])
 def add_product():
@@ -74,13 +91,12 @@ def add_product():
         return redirect("/login")
 
     merchant_id = session["user_id"]
-    cur = mysql.connection.cursor()
 
-    # ✅ GET EXISTING CATEGORIES
+    conn = get_db_connection()
+    cur = conn.cursor()
+
     cur.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL")
     categories = [c[0] for c in cur.fetchall()]
-
-    print("CATEGORIES:", categories)  # debug
 
     if request.method == "POST":
 
@@ -90,7 +106,6 @@ def add_product():
         category = request.form.get("category")
         new_category = request.form.get("new_category")
 
-        # ✅ USE NEW CATEGORY IF ENTERED
         if new_category:
             category = new_category
 
@@ -107,23 +122,23 @@ def add_product():
 
         image_url = upload_result.get("secure_url")
 
-        # ✅ INSERT WITH CATEGORY
         cur.execute("""
             INSERT INTO products (name, price, description, image_url, merchant_id, category)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?, ?)
         """, (name, price, description, image_url, merchant_id, category))
 
-        mysql.connection.commit()
-        cur.close()
+        conn.commit()
+        conn.close()
 
         flash("Product added successfully ✅", "success")
         return redirect(url_for("merchant.products"))
 
+    conn.close()
     return render_template("merchant/add-product.html", categories=categories)
 
 
 # =========================
-# 📦 PRODUCTS
+# PRODUCTS
 # =========================
 @merchant_bp.route("/products")
 def products():
@@ -133,21 +148,23 @@ def products():
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
     cur.execute("""
         SELECT id, name, price, description, image_url, category
-        FROM products 
-        WHERE merchant_id=%s
+        FROM products
+        WHERE merchant_id = ?
     """, (merchant_id,))
 
     data = cur.fetchall()
-    cur.close()
+    conn.close()
 
     return render_template("merchant/products.html", products=data)
 
 
 # =========================
-# ❌ DELETE PRODUCT
+# DELETE PRODUCT
 # =========================
 @merchant_bp.route("/delete-product/<int:id>")
 def delete_product(id):
@@ -157,21 +174,23 @@ def delete_product(id):
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
+
     cur.execute("""
-        DELETE FROM products 
-        WHERE id=%s AND merchant_id=%s
+        DELETE FROM products
+        WHERE id = ? AND merchant_id = ?
     """, (id, merchant_id))
 
-    mysql.connection.commit()
-    cur.close()
+    conn.commit()
+    conn.close()
 
     flash("Product deleted ❌", "error")
     return redirect(url_for("merchant.products"))
 
 
 # =========================
-# 🧾 ORDERS
+# ORDERS
 # =========================
 @merchant_bp.route("/orders")
 def orders():
@@ -181,7 +200,8 @@ def orders():
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
     cur.execute("""
         SELECT 
@@ -196,17 +216,17 @@ def orders():
         FROM orders o
         JOIN products p ON o.product_id = p.id
         JOIN users u ON o.user_id = u.id
-        WHERE p.merchant_id=%s
+        WHERE p.merchant_id = ?
     """, (merchant_id,))
 
     orders = cur.fetchall()
-    cur.close()
+    conn.close()
 
     return render_template("merchant/orders.html", orders=orders)
 
 
 # =========================
-# 🔄 UPDATE ORDER
+# UPDATE ORDER
 # =========================
 @merchant_bp.route("/update-order/<int:order_id>/<status>")
 def update_order(order_id, status):
@@ -216,49 +236,44 @@ def update_order(order_id, status):
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
     cur.execute("""
-        UPDATE orders o
-        JOIN products p ON o.product_id = p.id
-        SET o.status=%s
-        WHERE o.id=%s AND p.merchant_id=%s
-    """, (status, order_id, merchant_id))
+        UPDATE orders
+        SET status = ?
+        WHERE id = ?
+    """, (status, order_id))
 
-    mysql.connection.commit()
-    cur.close()
+    conn.commit()
+    conn.close()
 
     flash("Order updated ✅", "success")
     return redirect(url_for("merchant.orders"))
 
-# 👤 MERCHANT PROFILE
+
+# =========================
+# MERCHANT PROFILE
+# =========================
 @merchant_bp.route("/merchant/profile", methods=["GET", "POST"])
 def merchant_profile():
 
-    # 🔐 LOGIN CHECK
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    # ✅ GET MERCHANT DATA
     cur.execute("""
-        SELECT 
-            name,
-            email,
-            address1,
-            address2,
-            city,
-            pincode
+        SELECT name, email, address1, address2, city, pincode
         FROM users
-        WHERE id = %s
+        WHERE id = ?
     """, (merchant_id,))
 
     merchant = cur.fetchone()
 
-    # ✅ UPDATE PROFILE
     if request.method == "POST":
 
         name = request.form.get("name")
@@ -269,50 +284,36 @@ def merchant_profile():
 
         cur.execute("""
             UPDATE users
-            SET
-                name=%s,
-                address1=%s,
-                address2=%s,
-                city=%s,
-                pincode=%s
-            WHERE id=%s
-        """, (
-            name,
-            address1,
-            address2,
-            city,
-            pincode,
-            merchant_id
-        ))
+            SET name = ?, address1 = ?, address2 = ?, city = ?, pincode = ?
+            WHERE id = ?
+        """, (name, address1, address2, city, pincode, merchant_id))
 
-        mysql.connection.commit()
+        conn.commit()
 
         flash("Profile Updated Successfully ✅", "success")
+        conn.close()
 
-        cur.close()
+        return redirect(url_for("merchant.merchant_profile"))
 
-        return redirect(url_for("merchant.merchant/profile"))
+    conn.close()
 
-    cur.close()
+    return render_template("merchant/profile.html", merchant=merchant)
 
-    return render_template(
-        "merchant/profile.html",
-        merchant=merchant
-    )
-    
-# ⭐ MERCHANT FEEDBACK
+
+# =========================
+# MERCHANT FEEDBACK
+# =========================
 @merchant_bp.route("/merchant-feedback")
 def merchant_feedback():
 
-    # 🔐 LOGIN CHECK
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
 
     merchant_id = session["user_id"]
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    # ✅ GET FEEDBACK OF MERCHANT PRODUCTS
     cur.execute("""
         SELECT
             f.id,
@@ -324,12 +325,39 @@ def merchant_feedback():
             f.created_at
         FROM feedback f
         JOIN products p ON f.product_id = p.id
-        WHERE p.merchant_id = %s
+        WHERE p.merchant_id = ?
         ORDER BY f.id DESC
     """, (merchant_id,))
 
     feedbacks = cur.fetchall()
-
-    cur.close()
+    conn.close()
 
     return render_template("merchant/merchant_feedback.html", feedbacks=feedbacks)
+# =========================
+# ❌ REJECT ORDER
+# =========================
+@merchant_bp.route("/reject-order/<int:order_id>")
+def reject_order(order_id):
+
+    # LOGIN CHECK
+    if "user_id" not in session or session.get("role") != "merchant":
+        return redirect("/login")
+
+    merchant_id = session["user_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # UPDATE STATUS TO REJECTED
+    cur.execute("""
+        UPDATE orders
+        SET status = ?
+        WHERE id = ? AND merchant_id = ?
+    """, ("Rejected", order_id, merchant_id))
+
+    conn.commit()
+    conn.close()
+
+    flash("Order Rejected ❌", "success")
+
+    return redirect(url_for("merchant.orders"))

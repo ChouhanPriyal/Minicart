@@ -1,3 +1,12 @@
+# Python
 __pycache__/
+*.pyc
+
+# SQLite database
+database.db
+
+# Secrets
 .env
-venv/
+
+# VS Code
+.vscode/
