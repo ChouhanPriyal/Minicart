@@ -5,7 +5,7 @@ cur = conn.cursor()
 
 # USERS
 cur.execute("""
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     email TEXT UNIQUE,
@@ -21,7 +21,7 @@ CREATE TABLE users (
 
 # PRODUCTS
 cur.execute("""
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     price REAL,
@@ -35,7 +35,7 @@ CREATE TABLE products (
 
 # CART
 cur.execute("""
-CREATE TABLE cart (
+CREATE TABLE IF NOT EXISTS cart (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     product_id INTEGER,
@@ -45,7 +45,7 @@ CREATE TABLE cart (
 
 # ORDERS
 cur.execute("""
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER,
     quantity INTEGER,
@@ -60,7 +60,7 @@ CREATE TABLE orders (
 
 # FEEDBACK
 cur.execute("""
-CREATE TABLE feedback (
+CREATE TABLE IF NOT EXISTS feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER,
     order_id INTEGER,
@@ -73,7 +73,7 @@ CREATE TABLE feedback (
 
 # WISHLIST
 cur.execute("""
-CREATE TABLE wishlist (
+CREATE TABLE IF NOT EXISTS wishlist (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     product_id INTEGER,
@@ -83,7 +83,7 @@ CREATE TABLE wishlist (
 
 # CATEGORIES
 cur.execute("""
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL
 )
@@ -92,4 +92,4 @@ CREATE TABLE categories (
 conn.commit()
 conn.close()
 
-print("✅ DATABASE CREATED SUCCESSFULLY")
+print("DATABASE READY SUCCESSFULLY")
