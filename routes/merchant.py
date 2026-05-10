@@ -19,12 +19,15 @@ cloudinary.config(
 
 merchant_bp = Blueprint("merchant", __name__)
 
+# =========================
+# FIXED DB PATH (IMPORTANT FOR RENDER)
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "../database.db")
 
-# -------------------------
-# DB CONNECTION
-# -------------------------
+
 def get_db_connection():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -58,7 +61,7 @@ def merchant_dashboard():
         SELECT COUNT(*)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id = ? AND o.status = 'pending'
+        WHERE p.merchant_id = ? AND o.status = 'Pending'
     """, (merchant_id,))
     pending_orders = cur.fetchone()[0]
 
@@ -82,7 +85,7 @@ def merchant_dashboard():
 
 
 # =========================
-# ADD PRODUCT
+# ADD PRODUCT (FIXED)
 # =========================
 @merchant_bp.route("/add-product", methods=["GET", "POST"])
 def add_product():
@@ -112,30 +115,20 @@ def add_product():
 
             image = request.files.get("image")
 
-            # 🔴 VALIDATION FIX
-            if not all([name, price, description, category]):
-                flash("All fields are required ❌", "error")
+            if not all([name, price, description, category, image]):
+                flash("All fields required ❌", "error")
                 return redirect(request.url)
 
-            if not image:
-                flash("Image not selected ❌", "error")
-                return redirect(request.url)
+            # FIXED CLOUDINARY UPLOAD
+            upload_result = cloudinary.uploader.upload(
+                image.read(),
+                folder="products"
+            )
 
-            # 🔥 CLOUDINARY SAFE UPLOAD
-            try:
-                upload_result = cloudinary.uploader.upload(
-                    image,
-                    folder="products"
-                )
-                image_url = upload_result.get("secure_url")
-            except Exception as e:
-                print("Cloudinary Error:", e)
-                flash("Image upload failed ❌ Check Cloudinary config", "error")
-                return redirect(request.url)
+            image_url = upload_result["secure_url"]
 
-            # 🔥 SAFE INSERT
             cur.execute("""
-                INSERT INTO products 
+                INSERT INTO products
                 (name, price, description, image_url, merchant_id, category)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (
@@ -148,17 +141,20 @@ def add_product():
             ))
 
             conn.commit()
+            conn.close()
 
             flash("Product added successfully ✅", "success")
             return redirect(url_for("merchant.products"))
 
         except Exception as e:
             print("ADD PRODUCT ERROR:", e)
-            flash("Something went wrong ❌ Check logs", "error")
+            conn.rollback()
+            flash("Server error ❌ check logs", "error")
             return redirect(request.url)
 
     conn.close()
     return render_template("merchant/add-product.html", categories=categories)
+
 
 # =========================
 # PRODUCTS
@@ -257,8 +253,6 @@ def update_order(order_id, status):
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
 
-    merchant_id = session["user_id"]
-
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -276,7 +270,7 @@ def update_order(order_id, status):
 
 
 # =========================
-# MERCHANT PROFILE
+# PROFILE
 # =========================
 @merchant_bp.route("/merchant/profile", methods=["GET", "POST"])
 def merchant_profile():
@@ -312,19 +306,17 @@ def merchant_profile():
         """, (name, address1, address2, city, pincode, merchant_id))
 
         conn.commit()
-
-        flash("Profile Updated Successfully ✅", "success")
         conn.close()
 
+        flash("Profile Updated ✅", "success")
         return redirect(url_for("merchant.merchant_profile"))
 
     conn.close()
-
     return render_template("merchant/profile.html", merchant=merchant)
 
 
 # =========================
-# MERCHANT FEEDBACK
+# FEEDBACK
 # =========================
 @merchant_bp.route("/merchant-feedback")
 def merchant_feedback():
@@ -338,14 +330,7 @@ def merchant_feedback():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT
-            f.id,
-            p.name,
-            p.image_url,
-            f.user_name,
-            f.rating,
-            f.comment,
-            f.created_at
+        SELECT f.id, p.name, p.image_url, f.user_name, f.rating, f.comment
         FROM feedback f
         JOIN products p ON f.product_id = p.id
         WHERE p.merchant_id = ?
@@ -356,31 +341,28 @@ def merchant_feedback():
     conn.close()
 
     return render_template("merchant/merchant_feedback.html", feedbacks=feedbacks)
+
+
 # =========================
-# ❌ REJECT ORDER
+# REJECT ORDER
 # =========================
 @merchant_bp.route("/reject-order/<int:order_id>")
 def reject_order(order_id):
 
-    # LOGIN CHECK
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
-
-    merchant_id = session["user_id"]
 
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # UPDATE STATUS TO REJECTED
     cur.execute("""
         UPDATE orders
-        SET status = ?
-        WHERE id = ? AND merchant_id = ?
-    """, ("Rejected", order_id, merchant_id))
+        SET status = 'Rejected'
+        WHERE id = ?
+    """, (order_id,))
 
     conn.commit()
     conn.close()
 
     flash("Order Rejected ❌", "success")
-
     return redirect(url_for("merchant.orders"))

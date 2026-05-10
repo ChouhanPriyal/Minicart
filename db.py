@@ -1,9 +1,14 @@
 import sqlite3
+import os
 
-DATABASE = "database.db"
+# 🔥 IMPORTANT: absolute path fix for Render
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATABASE = os.path.join(BASE_DIR, "database.db")
 
 
-# 🔥 CREATE TABLES AUTOMATICALLY
+# -------------------------
+# CREATE TABLES
+# -------------------------
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cur = conn.cursor()
@@ -48,14 +53,18 @@ def init_db():
     conn.close()
 
 
-# 🔥 DATABASE CONNECTION
+# -------------------------
+# DB CONNECTION
+# -------------------------
 def get_connection():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# 🔥 QUERY EXECUTOR
+# -------------------------
+# EXECUTE QUERY
+# -------------------------
 def execute(query, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_connection()
     cur = conn.cursor()
@@ -64,16 +73,20 @@ def execute(query, params=(), fetchone=False, fetchall=False, commit=False):
 
     data = None
 
-    if commit:
-        conn.commit()
     if fetchone:
         data = cur.fetchone()
-    if fetchall:
+    elif fetchall:
         data = cur.fetchall()
+
+    if commit:
+        conn.commit()
 
     conn.close()
     return data
 
 
-# 🔥 RUN DB ON IMPORT
-init_db()
+# -------------------------
+# INIT DB SAFELY (NO AUTO CRASH)
+# -------------------------
+if __name__ != "__main__":
+    init_db()

@@ -1,10 +1,16 @@
 import sqlite3
+import os
 
-DB_NAME = "database.db"
+# 🔥 FIX: absolute path for Render stability
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
 
 
+# -------------------------
+# INIT DATABASE
+# -------------------------
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
     # USERS
@@ -23,7 +29,7 @@ def init_db():
     )
     """)
 
-    # PRODUCTS (FIXED)
+    # PRODUCTS
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,5 +104,8 @@ def init_db():
     conn.close()
 
 
-# run automatically
-init_db()
+# -------------------------
+# RUN ONLY ON IMPORT (SAFE FOR RENDER)
+# -------------------------
+if __name__ != "__main__":
+    init_db()
