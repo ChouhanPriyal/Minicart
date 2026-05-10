@@ -100,42 +100,65 @@ def add_product():
 
     if request.method == "POST":
 
-        name = request.form.get("name")
-        price = request.form.get("price")
-        description = request.form.get("description")
-        category = request.form.get("category")
-        new_category = request.form.get("new_category")
+        try:
+            name = request.form.get("name")
+            price = request.form.get("price")
+            description = request.form.get("description")
+            category = request.form.get("category")
+            new_category = request.form.get("new_category")
 
-        if new_category:
-            category = new_category
+            if new_category:
+                category = new_category
 
-        image = request.files.get("image")
+            image = request.files.get("image")
 
-        if not image:
-            flash("Image not selected ❌", "error")
+            # 🔴 VALIDATION FIX
+            if not all([name, price, description, category]):
+                flash("All fields are required ❌", "error")
+                return redirect(request.url)
+
+            if not image:
+                flash("Image not selected ❌", "error")
+                return redirect(request.url)
+
+            # 🔥 CLOUDINARY SAFE UPLOAD
+            try:
+                upload_result = cloudinary.uploader.upload(
+                    image,
+                    folder="products"
+                )
+                image_url = upload_result.get("secure_url")
+            except Exception as e:
+                print("Cloudinary Error:", e)
+                flash("Image upload failed ❌ Check Cloudinary config", "error")
+                return redirect(request.url)
+
+            # 🔥 SAFE INSERT
+            cur.execute("""
+                INSERT INTO products 
+                (name, price, description, image_url, merchant_id, category)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                name,
+                float(price),
+                description,
+                image_url,
+                merchant_id,
+                category
+            ))
+
+            conn.commit()
+
+            flash("Product added successfully ✅", "success")
+            return redirect(url_for("merchant.products"))
+
+        except Exception as e:
+            print("ADD PRODUCT ERROR:", e)
+            flash("Something went wrong ❌ Check logs", "error")
             return redirect(request.url)
-
-        upload_result = cloudinary.uploader.upload(
-            image.read(),
-            folder="products"
-        )
-
-        image_url = upload_result.get("secure_url")
-
-        cur.execute("""
-            INSERT INTO products (name, price, description, image_url, merchant_id, category)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, price, description, image_url, merchant_id, category))
-
-        conn.commit()
-        conn.close()
-
-        flash("Product added successfully ✅", "success")
-        return redirect(url_for("merchant.products"))
 
     conn.close()
     return render_template("merchant/add-product.html", categories=categories)
-
 
 # =========================
 # PRODUCTS

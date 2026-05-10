@@ -111,7 +111,10 @@ def cart():
 
     cart_items = cur.fetchall()
 
-    total = sum(float(item[2]) * int(item[5]) for item in cart_items)
+    # SAFE TOTAL CALCULATION
+    total = 0
+    for item in cart_items:
+        total += float(item["price"]) * int(item["quantity"])
 
     conn.close()
 
@@ -197,7 +200,7 @@ def decrease(product_id):
 
 
 # ======================
-# CHECKOUT
+# CHECKOUT (FIXED)
 # ======================
 @user_bp.route("/checkout")
 def checkout():
@@ -225,14 +228,14 @@ def checkout():
 
     cart_items = cur.fetchall()
 
+    if not cart_items:
+        flash("Cart is empty ❌", "error")
+        conn.close()
+        return redirect("/cart")
+
     for item in cart_items:
 
-        product_id = item[0]
-        quantity = item[1]
-        price = item[2]
-        merchant_id = item[3]
-
-        total_price = float(price) * int(quantity)
+        total_price = float(item["price"]) * int(item["quantity"])
 
         cur.execute("""
             INSERT INTO orders (
@@ -245,11 +248,11 @@ def checkout():
             )
             VALUES (?, ?, ?, ?, ?, ?)
         """, (
-            product_id,
-            quantity,
+            item["product_id"],
+            item["quantity"],
             total_price,
             user_id,
-            merchant_id,
+            item["merchant_id"],
             order_group
         ))
 
@@ -287,6 +290,10 @@ def profile():
 
     user = cur.fetchone()
 
+    if not user:
+        conn.close()
+        return redirect("/login")
+
     cur.execute("""
         SELECT
             o.id,
@@ -306,17 +313,18 @@ def profile():
 
     if request.method == "POST":
 
-        name = request.form.get("name")
-        address1 = request.form.get("address1")
-        address2 = request.form.get("address2")
-        city = request.form.get("city")
-        pincode = request.form.get("pincode")
-
         cur.execute("""
             UPDATE users
             SET name = ?, address1 = ?, address2 = ?, city = ?, pincode = ?
             WHERE id = ?
-        """, (name, address1, address2, city, pincode, user_id))
+        """, (
+            request.form.get("name"),
+            request.form.get("address1"),
+            request.form.get("address2"),
+            request.form.get("city"),
+            request.form.get("pincode"),
+            user_id
+        ))
 
         conn.commit()
 
@@ -365,7 +373,7 @@ def order_success():
     if not latest:
         return redirect("/cart")
 
-    order_group = latest[0]
+    order_group = latest["order_group"]
 
     cur.execute("""
         SELECT
