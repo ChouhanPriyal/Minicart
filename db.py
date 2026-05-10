@@ -1,36 +1,49 @@
 import sqlite3
 import os
 
-# 🔥 IMPORTANT: absolute path fix for Render
+# 🔥 Render-safe absolute path
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.path.join(BASE_DIR, "database.db")
 
 
 # -------------------------
-# CREATE TABLES
+# INIT DATABASE (FULL FIXED)
 # -------------------------
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cur = conn.cursor()
 
+    # USERS (FIXED FOR PROFILE PAGE)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         email TEXT UNIQUE,
         password TEXT,
-        role TEXT DEFAULT 'user'
+        role TEXT DEFAULT 'user',
+        address1 TEXT,
+        address2 TEXT,
+        city TEXT,
+        pincode TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
+    # PRODUCTS (FIXED FOR MERCHANT + USER)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
-        price REAL
+        price REAL,
+        description TEXT,
+        image_url TEXT,
+        merchant_id INTEGER,
+        category TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
+    # CART
     cur.execute("""
     CREATE TABLE IF NOT EXISTS cart (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,12 +53,49 @@ def init_db():
     )
     """)
 
+    # ORDERS (FIXED FOR CHECKOUT + STATUS + MERCHANT)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER,
+        quantity INTEGER,
+        total_price REAL,
+        user_id INTEGER,
+        merchant_id INTEGER,
+        order_group TEXT,
+        status TEXT DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # FEEDBACK (USED IN MERCHANT PAGE)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER,
+        order_id INTEGER,
+        user_name TEXT,
+        rating INTEGER,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # WISHLIST
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS wishlist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         product_id INTEGER,
-        quantity INTEGER
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # CATEGORIES (FOR ALL PRODUCTS PAGE)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT
     )
     """)
 
@@ -54,7 +104,7 @@ def init_db():
 
 
 # -------------------------
-# DB CONNECTION
+# CONNECTION
 # -------------------------
 def get_connection():
     conn = sqlite3.connect(DATABASE, check_same_thread=False)
@@ -63,7 +113,7 @@ def get_connection():
 
 
 # -------------------------
-# EXECUTE QUERY
+# EXECUTE HELPER
 # -------------------------
 def execute(query, params=(), fetchone=False, fetchall=False, commit=False):
     conn = get_connection()
@@ -86,7 +136,6 @@ def execute(query, params=(), fetchone=False, fetchall=False, commit=False):
 
 
 # -------------------------
-# INIT DB SAFELY (NO AUTO CRASH)
+# INIT ON IMPORT (RENDER SAFE)
 # -------------------------
-if __name__ != "__main__":
-    init_db()
+init_db()

@@ -193,7 +193,7 @@ def checkout():
         return redirect("/login")
 
     user_id = session["user_id"]
-    order_group = str(uuid.uuid4())
+    order_group = "ORD" + str(uuid.uuid4())[:8].upper()
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -251,23 +251,33 @@ def profile():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    # ✅ FIX: explicitly select columns (VERY IMPORTANT)
+    cur.execute("""
+        SELECT name, email, address1, address2, city, pincode
+        FROM users
+        WHERE id = ?
+    """, (user_id,))
+
     user = cur.fetchone()
 
     if not user:
         conn.close()
         return redirect("/login")
 
+    # ORDERS
     cur.execute("""
         SELECT o.id, p.name, p.image_url, o.quantity, o.total_price, o.status
         FROM orders o
         JOIN products p ON o.product_id = p.id
         WHERE o.user_id = ?
+        ORDER BY o.id DESC
     """, (user_id,))
 
     orders = cur.fetchall()
 
+    # UPDATE PROFILE
     if request.method == "POST":
+
         cur.execute("""
             UPDATE users
             SET name=?, address1=?, address2=?, city=?, pincode=?
@@ -288,8 +298,6 @@ def profile():
     conn.close()
 
     return render_template("user/profile.html", user=user, orders=orders)
-
-
 # ======================
 # ALL PRODUCTS
 # ======================
@@ -299,13 +307,48 @@ def all_products():
     if "user_id" not in session:
         return redirect("/login")
 
+    search = request.args.get("search", "")
+    selected_category = request.args.get("category", "")
+
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM products ORDER BY id DESC")
+    # ✅ GET DISTINCT CATEGORIES FOR DROPDOWN
+    cur.execute("""
+        SELECT DISTINCT category
+        FROM products
+        WHERE category IS NOT NULL AND category != ''
+    """)
+    categories = cur.fetchall()
+
+    # ✅ MAIN PRODUCT QUERY (WITH FILTER SUPPORT)
+    query = """
+        SELECT id, name, price, description, image_url, category
+        FROM products
+        WHERE 1=1
+    """
+
+    params = []
+
+    # SEARCH FILTER
+    if search:
+        query += " AND name LIKE ?"
+        params.append(f"%{search}%")
+
+    # CATEGORY FILTER
+    if selected_category:
+        query += " AND category = ?"
+        params.append(selected_category)
+
+    query += " ORDER BY id DESC"
+
+    cur.execute(query, params)
     products = cur.fetchall()
 
-    cur.execute("SELECT * FROM feedback ORDER BY id DESC")
+    # FEEDBACK
+    cur.execute("""
+        SELECT * FROM feedback ORDER BY id DESC
+    """)
     feedback = cur.fetchall()
 
     conn.close()
@@ -313,5 +356,77 @@ def all_products():
     return render_template(
         "user/all_products.html",
         products=products,
-        feedback=feedback
+        feedback=feedback,
+        categories=categories,
+        selected_category=selected_category,
+        search=search
+    )
+    
+    
+# ======================
+# ORDER SUCCESS
+# ======================
+@user_bp.route("/order-success")
+def order_success():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # USER DETAILS
+    cur.execute("""
+        SELECT name, address1, address2, city, pincode
+        FROM users
+        WHERE id = ?
+    """, (user_id,))
+
+    user = cur.fetchone()
+
+    # GET LATEST ORDER GROUP
+    cur.execute("""
+        SELECT order_group
+        FROM orders
+        WHERE user_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+    """, (user_id,))
+
+    latest = cur.fetchone()
+
+    # NO ORDER FOUND
+    if not latest:
+        conn.close()
+        flash("No recent order found ❌", "error")
+        return redirect("/cart")
+
+    order_group = latest["order_group"]
+
+    # GET ORDER ITEMS
+    cur.execute("""
+        SELECT
+            o.id,
+            p.name,
+            p.price,
+            p.image_url,
+            o.quantity,
+            o.total_price,
+            o.status
+        FROM orders o
+        JOIN products p ON o.product_id = p.id
+        WHERE o.order_group = ?
+    """, (order_group,))
+
+    items = cur.fetchall()
+
+    conn.close()
+
+    return render_template(
+        "user/order_success.html",
+        user=user,
+        order_id=order_group,
+        items=items
     )

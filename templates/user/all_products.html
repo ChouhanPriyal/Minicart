@@ -308,10 +308,13 @@
         <div class="toast {{ category }}">{{ message }}</div>
       {% endfor %}
     </div>
+
     <script>
       setTimeout(() => {
         document.querySelectorAll('.toast').forEach(t => {
-          t.style.transition = '0.4s'; t.style.opacity = '0';
+          t.style.transition = '0.4s';
+          t.style.opacity = '0';
+
           setTimeout(() => t.remove(), 400);
         });
       }, 2600);
@@ -322,43 +325,72 @@
 <!-- NAVBAR -->
 <nav>
   <a href="/user-home" class="brand">Mini<span>Cart</span></a>
+
   <div class="nav-links">
-    <a href="/user-home"><span class="nav-icon">🏠</span>Home</a>
-    <a href="/cart"><span class="nav-icon">🛒</span>Cart</a>
-    <a href="/profile"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/user-home">
+      <span class="nav-icon">🏠</span>Home
+    </a>
+
+    <a href="/cart">
+      <span class="nav-icon">🛒</span>Cart
+    </a>
+
+    <a href="/profile">
+      <span class="nav-icon">👤</span>Profile
+    </a>
   </div>
 </nav>
 
-<!-- MOBILE CATEGORY CHIPS -->
+<!-- MOBILE CATEGORY -->
 <div class="mobile-cats">
-  <a href="/all-products" class="chip {% if not selected_category %}active{% endif %}">All</a>
+
+  <a href="/all-products"
+     class="chip {% if not selected_category %}active{% endif %}">
+    All
+  </a>
+
   {% for c in categories %}
     <a href="/all-products?category={{ c[0] }}"
        class="chip {% if selected_category == c[0] %}active{% endif %}">
       {{ c[0] }}
     </a>
   {% endfor %}
+
 </div>
 
 <!-- SEARCH -->
 <div class="search-wrap">
-  <input type="text" id="searchInput"
-         value="{{ search or '' }}"
-         placeholder="Search for products...">
-  <button class="btn-search" onclick="searchProduct()">Search</button>
-  <button class="btn-clear" onclick="clearSearch()">Clear</button>
+
+  <input
+      type="text"
+      id="searchInput"
+      value="{{ search or '' }}"
+      placeholder="Search for products..."
+  >
+
+  <button class="btn-search" onclick="searchProduct()">
+    Search
+  </button>
+
+  <button class="btn-clear" onclick="clearSearch()">
+    Clear
+  </button>
+
 </div>
 
-<!-- MAIN LAYOUT -->
+<!-- MAIN -->
 <div class="main-layout">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
+
     <p class="sidebar-title">Categories</p>
+
     <a href="/all-products"
        class="cat-link {% if not selected_category %}active{% endif %}">
       All Products
     </a>
+
     {% for c in categories %}
       <a href="/all-products?category={{ c[0] }}"
          class="cat-link {% if selected_category == c[0] %}active{% endif %}">
@@ -369,122 +401,276 @@
     <hr class="divider">
 
     <p class="sidebar-title">Price Filter</p>
-    <p class="price-label">Max: <span>₹<span id="priceValue">5000</span></span></p>
-    <input type="range" id="priceRange" min="0" max="5000" value="5000"
-           oninput="filterByPrice()">
+
+    <p class="price-label">
+      Max:
+      <span>₹<span id="priceValue">5000</span></span>
+    </p>
+
+    <input
+        type="range"
+        id="priceRange"
+        min="0"
+        max="5000"
+        value="5000"
+        oninput="filterByPrice()"
+    >
+
   </aside>
 
-  <!-- PRODUCTS AREA -->
+  <!-- PRODUCTS -->
   <main class="products-area">
+
     {% if products %}
-      <p class="result-info">Showing <strong>{{ products|length }} products</strong>
-        {% if selected_category %} in <strong>{{ selected_category }}</strong>{% endif %}
-        {% if search %} for <strong>"{{ search }}"</strong>{% endif %}
+
+      <p class="result-info">
+
+        Showing
+        <strong>{{ products|length }} products</strong>
+
+        {% if selected_category %}
+          in <strong>{{ selected_category }}</strong>
+        {% endif %}
+
+        {% if search %}
+          for <strong>"{{ search }}"</strong>
+        {% endif %}
+
       </p>
 
       <div class="products-grid">
-        {% for p in products %}
-        <div class="product-card" id="product-{{ p[0] }}" data-price="{{ p[2] }}">
 
+        {% for p in products %}
+
+        <div class="product-card"
+             id="product-{{ p[0] }}"
+             data-price="{{ p[2] }}">
+
+          <!-- IMAGE -->
           <div class="card-img-wrap">
             <a href="/product/{{ p[0] }}">
-              <img src="{{ p[4] }}" alt="{{ p[1] }}" loading="lazy">
+              <img
+                  src="{{ p[4] }}"
+                  alt="{{ p[1] }}"
+                  loading="lazy"
+              >
             </a>
           </div>
 
+          <!-- BODY -->
           <div class="card-body">
-            <a href="/product/{{ p[0] }}" class="card-name">{{ p[1] }}</a>
-            <p class="card-price">{{ p[2] }}</p>
 
-            <a href="/add_to_cart/{{ p[0] }}" class="btn-cart">Add to Cart</a>
+            <a href="/product/{{ p[0] }}"
+               class="card-name">
+              {{ p[1] }}
+            </a>
 
-            <button class="btn-feedback" onclick="toggleFeedback('{{ p[0] }}')">
+            <p class="card-price">
+              ₹{{ p[2] }}
+            </p>
+
+            <a href="/add_to_cart/{{ p[0] }}"
+               class="btn-cart">
+              Add to Cart
+            </a>
+
+            <button
+                class="btn-feedback"
+                onclick="toggleFeedback('{{ p[0] }}')">
               ★ Give Feedback
             </button>
 
-            <!-- FEEDBACK FORM -->
-            <div class="feedback-form" id="feedback-{{ p[0] }}">
-              <form action="/add_feedback" method="POST">
-                <input type="hidden" name="product_id" value="{{ p[0] }}">
-                <input type="text" name="user_name" placeholder="Your name" required>
-                <select name="rating">
-                  <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-                  <option value="4">⭐⭐⭐⭐ Very Good</option>
-                  <option value="3">⭐⭐⭐ Good</option>
-                  <option value="2">⭐⭐ Fair</option>
-                  <option value="1">⭐ Poor</option>
-                </select>
-                <textarea name="comment" placeholder="Write your review..." required></textarea>
-                <button type="submit" class="btn-submit">Submit Review</button>
-              </form>
-            </div>
-
-            <!-- REVIEWS -->
-            {% set has_review = namespace(val=false) %}
-            {% for f in feedback %}{% if f[0] == p[0] %}{% set has_review.val = true %}{% endif %}{% endfor %}
-
-            {% if has_review.val %}
-            <div class="reviews-wrap">
-              {% for f in feedback %}
-                {% if f[0] == p[0] %}
-                <div class="review-item">
-                  <b>{{ f[1] }}</b>
-                  <span class="review-stars"> ⭐{{ f[2] }}</span><br>
-                  {{ f[3] }}
-                </div>
-                {% endif %}
-              {% endfor %}
-            </div>
-            {% endif %}
           </div>
 
+          <!-- FEEDBACK FORM -->
+          <div class="feedback-form" id="feedback-{{ p[0] }}">
+
+            <form action="/add_feedback" method="POST">
+
+              <input type="hidden"
+                     name="product_id"
+                     value="{{ p[0] }}">
+
+              <input type="text"
+                     name="user_name"
+                     placeholder="Your name"
+                     required>
+
+              <select name="rating">
+
+                <option value="5">
+                  ⭐⭐⭐⭐⭐ Excellent
+                </option>
+
+                <option value="4">
+                  ⭐⭐⭐⭐ Very Good
+                </option>
+
+                <option value="3">
+                  ⭐⭐⭐ Good
+                </option>
+
+                <option value="2">
+                  ⭐⭐ Fair
+                </option>
+
+                <option value="1">
+                  ⭐ Poor
+                </option>
+
+              </select>
+
+              <textarea
+                  name="comment"
+                  placeholder="Write your review..."
+                  required></textarea>
+
+              <button type="submit"
+                      class="btn-submit">
+                Submit Review
+              </button>
+
+            </form>
+
+          </div>
+
+          <!-- REVIEWS -->
+          {% set has_review = namespace(val=false) %}
+
+          {% for f in feedback %}
+            {% if f[0] == p[0] %}
+              {% set has_review.val = true %}
+            {% endif %}
+          {% endfor %}
+
+          {% if has_review.val %}
+
+          <div class="reviews-wrap">
+
+            {% for f in feedback %}
+              {% if f[0] == p[0] %}
+
+              <div class="review-item">
+
+                <b>{{ f[1] }}</b>
+
+                <span class="review-stars">
+                  ⭐{{ f[2] }}
+                </span>
+
+                <br>
+
+                {{ f[3] }}
+
+              </div>
+
+              {% endif %}
+            {% endfor %}
+
+          </div>
+
+          {% endif %}
+
         </div>
+
         {% endfor %}
+
       </div>
 
     {% else %}
+
       <div class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <p>No products found. Try a different search or category.</p>
+
+        <div class="empty-icon">
+          🔍
+        </div>
+
+        <p>
+          No products found.
+          Try a different search or category.
+        </p>
+
       </div>
+
     {% endif %}
+
   </main>
 
 </div>
 
 <script>
+
 function searchProduct() {
+
   const v = document.getElementById('searchInput').value.trim();
-  if (v) window.location.href = '/all-products?search=' + encodeURIComponent(v);
+
+  if (v) {
+    window.location.href =
+      '/all-products?search=' + encodeURIComponent(v);
+  }
 }
 
-document.getElementById('searchInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') searchProduct();
+document.getElementById('searchInput')
+.addEventListener('keydown', e => {
+
+  if (e.key === 'Enter') {
+    searchProduct();
+  }
 });
 
 function clearSearch() {
+
   const input = document.getElementById('searchInput');
+
   const len = input.value.length;
-  if (!len) { window.location.href = '/all-products'; return; }
+
+  if (!len) {
+    window.location.href = '/all-products';
+    return;
+  }
+
   let i = len;
+
   const t = setInterval(() => {
+
     input.value = input.value.slice(0, --i);
-    if (i <= 0) { clearInterval(t); window.location.href = '/all-products'; }
+
+    if (i <= 0) {
+
+      clearInterval(t);
+
+      window.location.href = '/all-products';
+    }
+
   }, 30);
 }
 
 function filterByPrice() {
-  const val = +document.getElementById('priceRange').value;
-  document.getElementById('priceValue').textContent = val.toLocaleString('en-IN');
-  document.querySelectorAll('.product-card').forEach(card => {
-    card.style.display = parseInt(card.dataset.price) <= val ? '' : 'none';
-  });
+
+  const val =
+    +document.getElementById('priceRange').value;
+
+  document.getElementById('priceValue')
+    .textContent = val.toLocaleString('en-IN');
+
+  document.querySelectorAll('.product-card')
+    .forEach(card => {
+
+      card.style.display =
+        parseInt(card.dataset.price) <= val
+        ? ''
+        : 'none';
+    });
 }
 
 function toggleFeedback(id) {
-  const box = document.getElementById('feedback-' + id);
+
+  const box =
+    document.getElementById('feedback-' + id);
+
   box.classList.toggle('open');
 }
+
 </script>
 
 </body>
