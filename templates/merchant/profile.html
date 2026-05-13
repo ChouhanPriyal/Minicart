@@ -305,36 +305,81 @@
     </div>
 
     <!-- CHANGE PASSWORD FORM -->
-    <div class="mp-card">
-      <div class="mp-section-label">
-        <i class="ti ti-lock"></i> Change Password
+<div class="mp-card">
+
+  <div class="mp-section-label">
+    <i class="ti ti-lock"></i> Change Password
+  </div>
+
+  <hr class="mp-divider">
+
+  <form method="POST">
+
+    <input type="hidden" name="form_type" value="password">
+
+    <div class="mp-form-grid">
+
+      <div class="mp-field full">
+
+        <label class="mp-label">
+          Current Password
+        </label>
+
+        <input
+          class="mp-input"
+          type="password"
+          name="current_password"
+          placeholder="Enter current password"
+          required
+        >
+
       </div>
-      <hr class="mp-divider">
 
-      <form method="POST" action="/change-password">
-        <div class="mp-form-grid">
+      <div class="mp-field full">
 
-          <div class="mp-field full">
-            <label class="mp-label">Old Password</label>
-            <input class="mp-input" type="password" name="old_password"
-                   placeholder="Enter current password">
-          </div>
+        <label class="mp-label">
+          New Password
+        </label>
 
-          <div class="mp-field full">
-            <label class="mp-label">New Password</label>
-            <input class="mp-input" type="password" name="new_password"
-                   placeholder="Enter new password">
-          </div>
+        <input
+          class="mp-input"
+          type="password"
+          name="new_password"
+          placeholder="Enter new password"
+          required
+        >
 
-          <button type="submit" class="mp-btn mp-btn-gold">
-            <i class="ti ti-key"></i>
-            Change Password
-          </button>
+      </div>
 
-        </div>
-      </form>
+      <div class="mp-field full">
+
+        <label class="mp-label">
+          Confirm Password
+        </label>
+
+        <input
+          class="mp-input"
+          type="password"
+          name="confirm_password"
+          placeholder="Confirm new password"
+          required
+        >
+
+      </div>
+
+      <button type="submit" class="mp-btn mp-btn-gold">
+
+        <i class="ti ti-key"></i>
+
+        Change Password
+
+      </button>
+
     </div>
 
+  </form>
+
+</div>
     <!-- LOGOUT -->
     <a href="/logout" class="mp-logout">
       <i class="ti ti-logout"></i>

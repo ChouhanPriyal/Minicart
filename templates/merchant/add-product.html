@@ -191,8 +191,22 @@
 
   <div class="ap-card">
 
-    <div class="ap-heading">Add Product</div>
-    <div class="ap-sub">Fill in the details below</div>
+    <div class="ap-heading">
+      {% if product %}
+        Edit Product
+      {% else %}
+        Add Product
+      {% endif %}
+    </div>
+
+    <div class="ap-sub">
+      {% if product %}
+        Update your product details
+      {% else %}
+        Fill in the details below
+      {% endif %}
+    </div>
+
     <hr class="ap-divider">
 
     <form method="POST" enctype="multipart/form-data">
@@ -200,32 +214,65 @@
       <!-- PRODUCT NAME -->
       <div class="ap-field">
         <label class="ap-label">Product Name</label>
-        <input class="ap-input" type="text" name="name"
-               placeholder="e.g. Handcrafted Kurta" required>
+
+        <input
+          class="ap-input"
+          type="text"
+          name="name"
+          placeholder="e.g. Handcrafted Kurta"
+          value="{{ product['name'] if product else '' }}"
+          required
+        >
       </div>
 
       <!-- PRICE -->
       <div class="ap-field">
         <label class="ap-label">Price (₹)</label>
-        <input class="ap-input" type="number" name="price"
-               placeholder="e.g. 1200" required>
+
+        <input
+          class="ap-input"
+          type="number"
+          name="price"
+          placeholder="e.g. 1200"
+          value="{{ product['price'] if product else '' }}"
+          required
+        >
       </div>
 
       <!-- DESCRIPTION -->
       <div class="ap-field">
         <label class="ap-label">Description</label>
-        <textarea class="ap-textarea" name="description"
-                  rows="4" placeholder="Describe your product..." required></textarea>
+
+        <textarea
+          class="ap-textarea"
+          name="description"
+          rows="4"
+          placeholder="Describe your product..."
+          required
+        >{{ product['description'] if product else '' }}</textarea>
       </div>
 
       <!-- CATEGORY -->
       <div class="ap-field">
         <label class="ap-label">Category</label>
+
         <select class="ap-select" name="category">
+
           <option value="">Select category</option>
+
           {% for c in categories %}
-            <option value="{{ c }}">{{ c }}</option>
+
+            <option
+              value="{{ c }}"
+              {% if product and product['category'] == c %}
+                selected
+              {% endif %}
+            >
+              {{ c }}
+            </option>
+
           {% endfor %}
+
         </select>
       </div>
 
@@ -239,38 +286,87 @@
       <!-- NEW CATEGORY -->
       <div class="ap-field" style="margin-top: -6px;">
         <label class="ap-label">New Category</label>
-        <input class="ap-input" type="text" name="new_category"
-               placeholder="e.g. Accessories">
+
+        <input
+          class="ap-input"
+          type="text"
+          name="new_category"
+          placeholder="e.g. Accessories"
+        >
       </div>
 
-      <!-- IMAGE UPLOAD -->
+      <!-- IMAGE -->
       <div class="ap-field">
+
         <label class="ap-label">Product Image</label>
+
+        {% if product %}
+          <img
+            src="{{ product['image_url'] }}"
+            style="
+              width:120px;
+              border-radius:10px;
+              margin-bottom:12px;
+              display:block;
+            "
+          >
+        {% endif %}
+
         <div class="ap-file-wrap" id="dropZone">
+
           <i class="ti ti-photo-up" aria-hidden="true"></i>
-          <span class="ap-file-hint">Click to upload image</span>
-          <span class="ap-file-name" id="fileName">No file chosen</span>
-          <input class="ap-file-input" type="file" name="image"
-                 accept="image/*" required id="fileInput">
+
+          <span class="ap-file-hint">
+            Click to upload image
+          </span>
+
+          <span class="ap-file-name" id="fileName">
+            No file chosen
+          </span>
+
+          <input
+            class="ap-file-input"
+            type="file"
+            name="image"
+            accept="image/*"
+            {% if not product %}required{% endif %}
+            id="fileInput"
+          >
+
         </div>
+
       </div>
 
       <!-- SUBMIT -->
       <button type="submit" class="ap-btn">
-        <i class="ti ti-circle-plus" aria-hidden="true"></i>
-        Add Product
+
+        {% if product %}
+          <i class="ti ti-device-floppy"></i>
+          Update Product
+        {% else %}
+          <i class="ti ti-circle-plus"></i>
+          Add Product
+        {% endif %}
+
       </button>
 
     </form>
 
-    <a href="/merchant-dashboard" class="ap-back">← Back to Dashboard</a>
+    <a href="/merchant-dashboard" class="ap-back">
+      ← Back to Dashboard
+    </a>
 
   </div>
 
   <script>
     document.getElementById('fileInput').addEventListener('change', function () {
-      const name = this.files[0] ? this.files[0].name : 'No file chosen';
+
+      const name = this.files[0]
+        ? this.files[0].name
+        : 'No file chosen';
+
       document.getElementById('fileName').textContent = name;
+
     });
   </script>
 

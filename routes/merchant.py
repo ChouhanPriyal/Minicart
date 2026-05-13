@@ -87,8 +87,12 @@ def merchant_dashboard():
 # =========================
 # ADD PRODUCT (FIXED)
 # =========================
+# =========================
+# ADD / EDIT PRODUCT
+# =========================
 @merchant_bp.route("/add-product", methods=["GET", "POST"])
-def add_product():
+@merchant_bp.route("/edit-product/<int:id>", methods=["GET", "POST"])
+def add_product(id=None):
 
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
@@ -98,12 +102,37 @@ def add_product():
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # GET CATEGORIES
     cur.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL")
     categories = [c[0] for c in cur.fetchall()]
 
+    product = None
+
+    # =========================
+    # EDIT MODE
+    # =========================
+    if id:
+
+        cur.execute("""
+            SELECT *
+            FROM products
+            WHERE id = ? AND merchant_id = ?
+        """, (id, merchant_id))
+
+        product = cur.fetchone()
+
+        if not product:
+            conn.close()
+            flash("Product not found ❌", "error")
+            return redirect(url_for("merchant.products"))
+
+    # =========================
+    # FORM SUBMIT
+    # =========================
     if request.method == "POST":
 
         try:
+
             name = request.form.get("name")
             price = request.form.get("price")
             description = request.form.get("description")
@@ -115,46 +144,111 @@ def add_product():
 
             image = request.files.get("image")
 
-            if not all([name, price, description, category, image]):
-                flash("All fields required ❌", "error")
-                return redirect(request.url)
+            # =========================
+            # EDIT PRODUCT
+            # =========================
+            if product:
 
-            # FIXED CLOUDINARY UPLOAD
-            upload_result = cloudinary.uploader.upload(
-                image.read(),
-                folder="products"
-            )
+                # IF IMAGE UPDATED
+                if image and image.filename != "":
 
-            image_url = upload_result["secure_url"]
+                    upload_result = cloudinary.uploader.upload(
+                        image.read(),
+                        folder="products"
+                    )
 
-            cur.execute("""
-                INSERT INTO products
-                (name, price, description, image_url, merchant_id, category)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                name,
-                float(price),
-                description,
-                image_url,
-                merchant_id,
-                category
-            ))
+                    image_url = upload_result["secure_url"]
 
-            conn.commit()
-            conn.close()
+                    cur.execute("""
+                        UPDATE products
+                        SET name = ?, price = ?, description = ?, category = ?, image_url = ?
+                        WHERE id = ? AND merchant_id = ?
+                    """, (
+                        name,
+                        float(price),
+                        description,
+                        category,
+                        image_url,
+                        id,
+                        merchant_id
+                    ))
 
-            flash("Product added successfully ✅", "success")
-            return redirect(url_for("merchant.products"))
+                # WITHOUT IMAGE UPDATE
+                else:
+
+                    cur.execute("""
+                        UPDATE products
+                        SET name = ?, price = ?, description = ?, category = ?
+                        WHERE id = ? AND merchant_id = ?
+                    """, (
+                        name,
+                        float(price),
+                        description,
+                        category,
+                        id,
+                        merchant_id
+                    ))
+
+                conn.commit()
+                conn.close()
+
+                flash("Product updated successfully ✅", "success")
+
+                return redirect(url_for("merchant.products"))
+
+            # =========================
+            # ADD PRODUCT
+            # =========================
+            else:
+
+                if not all([name, price, description, category, image]):
+                    flash("All fields required ❌", "error")
+                    return redirect(request.url)
+
+                upload_result = cloudinary.uploader.upload(
+                    image.read(),
+                    folder="products"
+                )
+
+                image_url = upload_result["secure_url"]
+
+                cur.execute("""
+                    INSERT INTO products
+                    (name, price, description, image_url, merchant_id, category)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    name,
+                    float(price),
+                    description,
+                    image_url,
+                    merchant_id,
+                    category
+                ))
+
+                conn.commit()
+                conn.close()
+
+                flash("Product added successfully ✅", "success")
+
+                return redirect(url_for("merchant.products"))
 
         except Exception as e:
-            print("ADD PRODUCT ERROR:", e)
+
+            print("PRODUCT ERROR:", e)
+
             conn.rollback()
-            flash("Server error ❌ check logs", "error")
+
+            flash("Something went wrong ❌", "error")
+
             return redirect(request.url)
 
     conn.close()
-    return render_template("merchant/add-product.html", categories=categories)
 
+    return render_template(
+        "merchant/add-product.html",
+        categories=categories,
+        product=product
+    )
 
 # =========================
 # PRODUCTS
@@ -206,6 +300,7 @@ def delete_product(id):
 
     flash("Product deleted ❌", "error")
     return redirect(url_for("merchant.products"))
+
 
 
 # =========================
@@ -270,7 +365,7 @@ def update_order(order_id, status):
 
 
 # =========================
-# PROFILE
+# PROFILE + CHANGE PASSWORD
 # =========================
 @merchant_bp.route("/merchant/profile", methods=["GET", "POST"])
 def merchant_profile():
@@ -291,30 +386,94 @@ def merchant_profile():
 
     merchant = cur.fetchone()
 
+    # =========================
+    # UPDATE PROFILE
+    # =========================
     if request.method == "POST":
 
-        name = request.form.get("name")
-        address1 = request.form.get("address1")
-        address2 = request.form.get("address2")
-        city = request.form.get("city")
-        pincode = request.form.get("pincode")
+        # CHANGE PASSWORD
+        if request.form.get("form_type") == "password":
 
-        cur.execute("""
-            UPDATE users
-            SET name = ?, address1 = ?, address2 = ?, city = ?, pincode = ?
-            WHERE id = ?
-        """, (name, address1, address2, city, pincode, merchant_id))
+            current_password = request.form.get("current_password")
+            new_password = request.form.get("new_password")
+            confirm_password = request.form.get("confirm_password")
 
-        conn.commit()
-        conn.close()
+            # GET CURRENT PASSWORD
+            cur.execute("""
+                SELECT password
+                FROM users
+                WHERE id = ?
+            """, (merchant_id,))
 
-        flash("Profile Updated ✅", "success")
-        return redirect(url_for("merchant.merchant_profile"))
+            user = cur.fetchone()
+
+            # CHECK CURRENT PASSWORD
+            if not user or user["password"] != current_password:
+
+                conn.close()
+
+                flash("Current password incorrect ❌", "error")
+
+                return redirect(url_for("merchant.merchant_profile"))
+
+            # CHECK PASSWORD MATCH
+            if new_password != confirm_password:
+
+                conn.close()
+
+                flash("Passwords do not match ❌", "error")
+
+                return redirect(url_for("merchant.merchant_profile"))
+
+            # UPDATE PASSWORD
+            cur.execute("""
+                UPDATE users
+                SET password = ?
+                WHERE id = ?
+            """, (new_password, merchant_id))
+
+            conn.commit()
+            conn.close()
+
+            flash("Password updated successfully ✅", "success")
+
+            return redirect(url_for("merchant.merchant_profile"))
+
+        # PROFILE UPDATE
+        else:
+
+            name = request.form.get("name")
+            address1 = request.form.get("address1")
+            address2 = request.form.get("address2")
+            city = request.form.get("city")
+            pincode = request.form.get("pincode")
+
+            cur.execute("""
+                UPDATE users
+                SET name = ?, address1 = ?, address2 = ?, city = ?, pincode = ?
+                WHERE id = ?
+            """, (
+                name,
+                address1,
+                address2,
+                city,
+                pincode,
+                merchant_id
+            ))
+
+            conn.commit()
+            conn.close()
+
+            flash("Profile Updated ✅", "success")
+
+            return redirect(url_for("merchant.merchant_profile"))
 
     conn.close()
-    return render_template("merchant/profile.html", merchant=merchant)
 
-
+    return render_template(
+        "merchant/profile.html",
+        merchant=merchant
+    )
 # =========================
 # FEEDBACK
 # =========================
