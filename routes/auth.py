@@ -1,16 +1,8 @@
+import bcrypt
 from flask import Blueprint, render_template, request, redirect, session, flash
-import sqlite3
+from db import get_connection
 
 auth_bp = Blueprint("auth", __name__)
-
-
-# ----------------------
-# DB CONNECTION
-# ----------------------
-def get_db_connection():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row  # IMPORTANT
-    return conn
 
 
 # ======================
@@ -26,19 +18,42 @@ def register():
         password = request.form.get("password")
         role = request.form.get("role")
 
-        conn = get_db_connection()
+        conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("""
-            INSERT INTO users (name, email, password, role)
-            VALUES (?, ?, ?, ?)
-        """, (name, email, password, role))
+        try:
+            # check if user exists
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            existing_user = cur.fetchone()
 
-        conn.commit()
-        conn.close()
+            if existing_user:
+                flash("Email already registered ❌", "error")
+                return redirect("/register")
 
-        flash("Registration Successful 🎉", "success")
-        return redirect("/login")
+            # 🔥 FIXED: store bcrypt as STRING (NOT bytes)
+            hashed_password = bcrypt.hashpw(
+                password.encode('utf-8'),
+                bcrypt.gensalt()
+            ).decode('utf-8')
+
+            cur.execute("""
+                INSERT INTO users (name, email, password, role)
+                VALUES (%s, %s, %s, %s)
+            """, (name, email, hashed_password, role))
+
+            conn.commit()
+
+            flash("Registration Successful 🎉", "success")
+            return redirect("/login")
+
+        except Exception as e:
+            conn.rollback()
+            print("REGISTER ERROR:", e)
+            flash("Something went wrong ❌", "error")
+
+        finally:
+            cur.close()
+            conn.close()
 
     return render_template("auth/register.html")
 
@@ -54,37 +69,58 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        conn = get_db_connection()
+        conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-        user = cur.fetchone()
+        try:
+            cur.execute("""
+                SELECT id, name, email, password, role
+                FROM users
+                WHERE email = %s
+            """, (email,))
 
-        conn.close()
+            user = cur.fetchone()
 
-        if user:
+            if not user:
+                flash("User Not Found ❌", "error")
+                return redirect("/login")
 
-            # ✅ SAFE ACCESS USING INDEX (ONLY if table is correct order)
-            if user[3] == password:
+            stored_password = user[3]
 
-                session["user_id"] = user[0]
-                session["name"] = user[1]
-                session["role"] = user[4]
+            # 🔥 FIX: ensure correct type
+            if isinstance(stored_password, memoryview):
+                stored_password = stored_password.tobytes()
 
-                flash("Login Successful ✅", "success")
+            if isinstance(stored_password, str):
+                stored_password = stored_password.encode('utf-8')
 
-                if user[4] == "merchant":
-                    return redirect("/merchant-dashboard")
-                else:
-                    return redirect("/user-home")
-
-            else:
+            # verify password
+            if not bcrypt.checkpw(
+                password.encode('utf-8'),
+                stored_password
+            ):
                 flash("Wrong Password ❌", "error")
                 return redirect("/login")
 
-        else:
-            flash("User Not Found ❌", "error")
-            return redirect("/login")
+            # session
+            session["user_id"] = user[0]
+            session["user_name"] = user[1]
+            session["role"] = user[4]
+
+            flash("Login Successful ✅", "success")
+
+            if user[4] == "merchant":
+                return redirect("/merchant-dashboard")
+            else:
+                return redirect("/user-home")
+
+        except Exception as e:
+            print("LOGIN ERROR:", e)
+            flash("Server Error ❌", "error")
+
+        finally:
+            cur.close()
+            conn.close()
 
     return render_template("auth/login.html")
 
@@ -97,5 +133,4 @@ def logout():
 
     session.clear()
     flash("Logged Out Successfully 👋", "success")
-
     return redirect("/login")

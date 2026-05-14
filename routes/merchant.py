@@ -1,7 +1,8 @@
+
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from dotenv import load_dotenv
+from db import get_connection
 import os
-import sqlite3
 import cloudinary
 import cloudinary.uploader
 
@@ -19,18 +20,6 @@ cloudinary.config(
 
 merchant_bp = Blueprint("merchant", __name__)
 
-# =========================
-# FIXED DB PATH (IMPORTANT FOR RENDER)
-# =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "../database.db")
-
-
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 
 # =========================
 # DASHBOARD
@@ -43,36 +32,46 @@ def merchant_dashboard():
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM products WHERE merchant_id = ?", (merchant_id,))
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM products
+        WHERE merchant_id = %s
+    """, (merchant_id,))
+
     total_products = cur.fetchone()[0]
 
     cur.execute("""
         SELECT COUNT(*)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id = ?
+        WHERE p.merchant_id = %s
     """, (merchant_id,))
+
     total_orders = cur.fetchone()[0]
 
     cur.execute("""
         SELECT COUNT(*)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id = ? AND o.status = 'Pending'
+        WHERE p.merchant_id = %s
+        AND o.status = 'Pending'
     """, (merchant_id,))
+
     pending_orders = cur.fetchone()[0]
 
     cur.execute("""
-        SELECT IFNULL(SUM(o.total_price), 0)
+        SELECT COALESCE(SUM(o.total_price), 0)
         FROM orders o
         JOIN products p ON o.product_id = p.id
-        WHERE p.merchant_id = ?
+        WHERE p.merchant_id = %s
     """, (merchant_id,))
+
     revenue = cur.fetchone()[0]
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -85,9 +84,6 @@ def merchant_dashboard():
 
 
 # =========================
-# ADD PRODUCT (FIXED)
-# =========================
-# =========================
 # ADD / EDIT PRODUCT
 # =========================
 @merchant_bp.route("/add-product", methods=["GET", "POST"])
@@ -99,11 +95,16 @@ def add_product(id=None):
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     # GET CATEGORIES
-    cur.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL")
+    cur.execute("""
+        SELECT DISTINCT category
+        FROM products
+        WHERE category IS NOT NULL
+    """)
+
     categories = [c[0] for c in cur.fetchall()]
 
     product = None
@@ -116,14 +117,19 @@ def add_product(id=None):
         cur.execute("""
             SELECT *
             FROM products
-            WHERE id = ? AND merchant_id = ?
+            WHERE id = %s
+            AND merchant_id = %s
         """, (id, merchant_id))
 
         product = cur.fetchone()
 
         if not product:
+
+            cur.close()
             conn.close()
+
             flash("Product not found ❌", "error")
+
             return redirect(url_for("merchant.products"))
 
     # =========================
@@ -149,7 +155,7 @@ def add_product(id=None):
             # =========================
             if product:
 
-                # IF IMAGE UPDATED
+                # IMAGE UPDATED
                 if image and image.filename != "":
 
                     upload_result = cloudinary.uploader.upload(
@@ -161,8 +167,14 @@ def add_product(id=None):
 
                     cur.execute("""
                         UPDATE products
-                        SET name = ?, price = ?, description = ?, category = ?, image_url = ?
-                        WHERE id = ? AND merchant_id = ?
+                        SET
+                            name = %s,
+                            price = %s,
+                            description = %s,
+                            category = %s,
+                            image_url = %s
+                        WHERE id = %s
+                        AND merchant_id = %s
                     """, (
                         name,
                         float(price),
@@ -173,13 +185,18 @@ def add_product(id=None):
                         merchant_id
                     ))
 
-                # WITHOUT IMAGE UPDATE
+                # WITHOUT IMAGE
                 else:
 
                     cur.execute("""
                         UPDATE products
-                        SET name = ?, price = ?, description = ?, category = ?
-                        WHERE id = ? AND merchant_id = ?
+                        SET
+                            name = %s,
+                            price = %s,
+                            description = %s,
+                            category = %s
+                        WHERE id = %s
+                        AND merchant_id = %s
                     """, (
                         name,
                         float(price),
@@ -190,6 +207,8 @@ def add_product(id=None):
                     ))
 
                 conn.commit()
+
+                cur.close()
                 conn.close()
 
                 flash("Product updated successfully ✅", "success")
@@ -202,7 +221,9 @@ def add_product(id=None):
             else:
 
                 if not all([name, price, description, category, image]):
+
                     flash("All fields required ❌", "error")
+
                     return redirect(request.url)
 
                 upload_result = cloudinary.uploader.upload(
@@ -214,8 +235,15 @@ def add_product(id=None):
 
                 cur.execute("""
                     INSERT INTO products
-                    (name, price, description, image_url, merchant_id, category)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (
+                        name,
+                        price,
+                        description,
+                        image_url,
+                        merchant_id,
+                        category
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
                     name,
                     float(price),
@@ -226,6 +254,8 @@ def add_product(id=None):
                 ))
 
                 conn.commit()
+
+                cur.close()
                 conn.close()
 
                 flash("Product added successfully ✅", "success")
@@ -238,10 +268,14 @@ def add_product(id=None):
 
             conn.rollback()
 
+            cur.close()
+            conn.close()
+
             flash("Something went wrong ❌", "error")
 
             return redirect(request.url)
 
+    cur.close()
     conn.close()
 
     return render_template(
@@ -249,6 +283,7 @@ def add_product(id=None):
         categories=categories,
         product=product
     )
+
 
 # =========================
 # PRODUCTS
@@ -261,19 +296,30 @@ def products():
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT id, name, price, description, image_url, category
+        SELECT
+            id,
+            name,
+            price,
+            description,
+            image_url,
+            category
         FROM products
-        WHERE merchant_id = ?
+        WHERE merchant_id = %s
     """, (merchant_id,))
 
     data = cur.fetchall()
+
+    cur.close()
     conn.close()
 
-    return render_template("merchant/products.html", products=data)
+    return render_template(
+        "merchant/products.html",
+        products=data
+    )
 
 
 # =========================
@@ -287,20 +333,23 @@ def delete_product(id):
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         DELETE FROM products
-        WHERE id = ? AND merchant_id = ?
+        WHERE id = %s
+        AND merchant_id = %s
     """, (id, merchant_id))
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     flash("Product deleted ❌", "error")
-    return redirect(url_for("merchant.products"))
 
+    return redirect(url_for("merchant.products"))
 
 
 # =========================
@@ -314,11 +363,11 @@ def orders():
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT 
+        SELECT
             o.id,
             p.name,
             p.image_url,
@@ -330,13 +379,18 @@ def orders():
         FROM orders o
         JOIN products p ON o.product_id = p.id
         JOIN users u ON o.user_id = u.id
-        WHERE p.merchant_id = ?
+        WHERE p.merchant_id = %s
     """, (merchant_id,))
 
     orders = cur.fetchall()
+
+    cur.close()
     conn.close()
 
-    return render_template("merchant/orders.html", orders=orders)
+    return render_template(
+        "merchant/orders.html",
+        orders=orders
+    )
 
 
 # =========================
@@ -348,19 +402,22 @@ def update_order(order_id, status):
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         UPDATE orders
-        SET status = ?
-        WHERE id = ?
+        SET status = %s
+        WHERE id = %s
     """, (status, order_id))
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     flash("Order updated ✅", "success")
+
     return redirect(url_for("merchant.orders"))
 
 
@@ -375,20 +432,23 @@ def merchant_profile():
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT name, email, address1, address2, city, pincode
+        SELECT
+            name,
+            email,
+            address1,
+            address2,
+            city,
+            pincode
         FROM users
-        WHERE id = ?
+        WHERE id = %s
     """, (merchant_id,))
 
     merchant = cur.fetchone()
 
-    # =========================
-    # UPDATE PROFILE
-    # =========================
     if request.method == "POST":
 
         # CHANGE PASSWORD
@@ -398,41 +458,41 @@ def merchant_profile():
             new_password = request.form.get("new_password")
             confirm_password = request.form.get("confirm_password")
 
-            # GET CURRENT PASSWORD
             cur.execute("""
                 SELECT password
                 FROM users
-                WHERE id = ?
+                WHERE id = %s
             """, (merchant_id,))
 
             user = cur.fetchone()
 
-            # CHECK CURRENT PASSWORD
-            if not user or user["password"] != current_password:
+            if not user or user[0] != current_password:
 
+                cur.close()
                 conn.close()
 
                 flash("Current password incorrect ❌", "error")
 
                 return redirect(url_for("merchant.merchant_profile"))
 
-            # CHECK PASSWORD MATCH
             if new_password != confirm_password:
 
+                cur.close()
                 conn.close()
 
                 flash("Passwords do not match ❌", "error")
 
                 return redirect(url_for("merchant.merchant_profile"))
 
-            # UPDATE PASSWORD
             cur.execute("""
                 UPDATE users
-                SET password = ?
-                WHERE id = ?
+                SET password = %s
+                WHERE id = %s
             """, (new_password, merchant_id))
 
             conn.commit()
+
+            cur.close()
             conn.close()
 
             flash("Password updated successfully ✅", "success")
@@ -450,8 +510,13 @@ def merchant_profile():
 
             cur.execute("""
                 UPDATE users
-                SET name = ?, address1 = ?, address2 = ?, city = ?, pincode = ?
-                WHERE id = ?
+                SET
+                    name = %s,
+                    address1 = %s,
+                    address2 = %s,
+                    city = %s,
+                    pincode = %s
+                WHERE id = %s
             """, (
                 name,
                 address1,
@@ -462,18 +527,23 @@ def merchant_profile():
             ))
 
             conn.commit()
+
+            cur.close()
             conn.close()
 
             flash("Profile Updated ✅", "success")
 
             return redirect(url_for("merchant.merchant_profile"))
 
+    cur.close()
     conn.close()
 
     return render_template(
         "merchant/profile.html",
         merchant=merchant
     )
+
+
 # =========================
 # FEEDBACK
 # =========================
@@ -485,21 +555,32 @@ def merchant_feedback():
 
     merchant_id = session["user_id"]
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT f.id, p.name, p.image_url, f.user_name, f.rating, f.comment
+        SELECT
+            f.id,
+            p.name,
+            p.image_url,
+            f.user_name,
+            f.rating,
+            f.comment
         FROM feedback f
         JOIN products p ON f.product_id = p.id
-        WHERE p.merchant_id = ?
+        WHERE p.merchant_id = %s
         ORDER BY f.id DESC
     """, (merchant_id,))
 
     feedbacks = cur.fetchall()
+
+    cur.close()
     conn.close()
 
-    return render_template("merchant/merchant_feedback.html", feedbacks=feedbacks)
+    return render_template(
+        "merchant/merchant_feedback.html",
+        feedbacks=feedbacks
+    )
 
 
 # =========================
@@ -511,17 +592,21 @@ def reject_order(order_id):
     if "user_id" not in session or session.get("role") != "merchant":
         return redirect("/login")
 
-    conn = get_db_connection()
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         UPDATE orders
         SET status = 'Rejected'
-        WHERE id = ?
+        WHERE id = %s
     """, (order_id,))
 
     conn.commit()
+
+    cur.close()
     conn.close()
 
     flash("Order Rejected ❌", "success")
+
     return redirect(url_for("merchant.orders"))
+
