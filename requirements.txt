@@ -63,3 +63,4 @@ typing_extensions==4.15.0
 urllib3==1.26.15
 wcwidth==0.6.0
 Werkzeug==3.1.6
+bcrypt==4.1.3
